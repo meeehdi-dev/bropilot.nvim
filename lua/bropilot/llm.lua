@@ -9,6 +9,7 @@ local suggestion_job_pid = -1
 local suggestion = ""
 local extmark_id = -1
 local context_line = ""
+-- local suggestion_progress_handle = nil
 
 local M = {}
 
@@ -20,26 +21,39 @@ local model = "codellama:7b-code"
 --
 -- local model = "starcoder2:3b"
 -- local model = "starcoder2:7b"
---
 
+---@type table<string, {prefix: string, suffix: string, middle: string}>
+local prompt_map = {
+  codellama = { prefix = "<PRE> ", suffix = " <SUF>", middle = " <MID>" },
+  codegemma = {
+    prefix = "<|fim_prefix|>",
+    suffix = "<|fim_suffix|>",
+    middle = "<|fim_middle|>",
+  },
+  starcoder2 = {
+    prefix = "<fim_prefix>",
+    suffix = "<fim_suffix>",
+    middle = "<fim_middle>",
+  },
+}
+
+---@param prefix string
+---@param suffix string
 local get_prompt = function(prefix, suffix)
-  if string.find(model, "codellama:") == 1 then
-    return "<PRE> " .. prefix .. " <SUF>" .. suffix .. " <MID>"
+  local model_name = vim.split(model, ":")[1]
+  local prompt_data = prompt_map[model_name]
+  if prompt_data == nil then
+    vim.notify(
+      "No prompt found for model " .. model_name .. " (" .. model .. ")",
+      vim.log.levels.ERROR
+    )
+    return
   end
-  if string.find(model, "codegemma:") == 1 then
-    return "<|fim_prefix|>"
-      .. prefix
-      .. "<|fim_suffix|>"
-      .. suffix
-      .. "<|fim_middle|>"
-  end
-  if string.find(model, "starcoder:") == 1 then
-    return "<fim_prefix>"
-      .. prefix
-      .. "<fim_suffix>"
-      .. suffix
-      .. "<fim_middle>"
-  end
+  return prompt_data.prefix
+    .. prefix
+    .. prompt_data.suffix
+    .. suffix
+    .. prompt_data.middle
 end
 
 function M.cancel()
@@ -163,6 +177,10 @@ function M.suggest(prefix, suffix, middle)
       debounce_job_pid = -1
 
       context_line = middle
+      -- if suggestion_progress_handle ~= nil then
+      --   suggestion_progress_handle:finish()
+      -- end
+      -- suggestion_progress_handle = util.get_progress_handle("Suggesting...")
       local suggestion_job = curl.post("http://localhost:11434/api/generate", {
         body = vim.json.encode({
           model = model,
