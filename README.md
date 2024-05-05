@@ -1,8 +1,11 @@
 # Bropilot.nvim
 
-Bropilot is a GitHub Copilot alternative that takes advantage local LLMs through Ollama's API.
+Bropilot is a GitHub Copilot alternative that takes advantage of local LLMs through Ollama's API.
 
-The goal of this project is to provide a minimal and local-only solution to speed up development thanks to Ollama.
+Current working models:
+- codellama (7b & 13b)
+- codegemma (2b & 7b)
+- starcoder (3b & 7b)
 
 
 ![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/ff18e6c8-691f-48ea-8f71-5f187a35b89a)
