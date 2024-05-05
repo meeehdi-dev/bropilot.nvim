@@ -5,7 +5,7 @@ Bropilot is a GitHub Copilot alternative that takes advantage of local LLMs thro
 Current working models:
 - codellama (7b & 13b)
 - codegemma (2b & 7b)
-- starcoder (3b & 7b)
+- starcoder2 (3b & 7b)
 
 
 ![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/ff18e6c8-691f-48ea-8f71-5f187a35b89a)
