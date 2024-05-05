@@ -87,3 +87,8 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   - [ ] comment
   - [ ] chat
   - [ ] commit msg (using git diff --staged + concentional commit rules)
+- [ ] add more context to prompt
+  - [ ] opened splits
+  - [ ] opened tabs
+  - [ ] lsp info (arg types, return types)
+  - [ ] imported files outlines (with lsp info also?)
