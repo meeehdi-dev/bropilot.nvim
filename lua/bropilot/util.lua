@@ -1,3 +1,5 @@
+local has_progress, progress = pcall(require, "fidget.progress")
+
 local M = {}
 
 function M.get_cursor()
@@ -25,6 +27,16 @@ end
 
 function M.get_pos()
   return vim.fn.line(".") - 1, vim.fn.col(".") - 1
+end
+
+function M.get_progress_handle(title)
+  if not has_progress then
+    return nil
+  end
+  return progress.handle.create({
+    title = title,
+    lsp_client = { name = "bropilot" },
+  })
 end
 
 return M

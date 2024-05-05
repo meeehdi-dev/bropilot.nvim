@@ -2,7 +2,6 @@ local curl = require("plenary.curl")
 local Job = require("plenary.job")
 local async = require("plenary.async")
 local util = require("bropilot.util")
-local has_progress, progress = pcall(require, "fidget.progress")
 
 local ns_id = vim.api.nvim_create_namespace("bropilot")
 local debounce_job_pid = -1
@@ -71,12 +70,8 @@ function M.clear(force)
 end
 
 function M.preload_model()
-  local preload_progress_handle = has_progress
-      and progress.handle.create({
-        title = "Preloading " .. model .. "...",
-        lsp_client = { name = "bropilot" },
-      })
-    or nil
+  local preload_progress_handle =
+    util.get_progress_handle("Preloading " .. model)
   local preload_job = curl.post("http://localhost:11434/api/generate", {
     body = vim.json.encode({
       model = model,
