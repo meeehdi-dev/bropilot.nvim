@@ -9,7 +9,7 @@ local suggestion_job_pid = -1
 local suggestion = ""
 local extmark_id = -1
 local context_line = ""
--- local suggestion_progress_handle = nil
+local suggestion_progress_handle = nil
 
 local M = {}
 
@@ -71,6 +71,10 @@ function M.cancel()
       io.popen("kill " .. kill)
     end)
   end
+  if suggestion_progress_handle ~= nil then
+    suggestion_progress_handle:cancel()
+    suggestion_progress_handle = nil
+  end
 end
 
 function M.clear(force)
@@ -92,10 +96,10 @@ function M.preload_model()
       keep_alive = "10m",
     }),
     callback = function()
-      if preload_progress_handle == nil then
-        return
+      if preload_progress_handle ~= nil then
+        preload_progress_handle:finish()
+        preload_progress_handle = nil
       end
-      preload_progress_handle:finish()
     end,
   })
   preload_job:start()
@@ -143,6 +147,10 @@ local function on_data(data)
   local body = vim.json.decode(data)
   if body.done then
     suggestion_job_pid = -1
+    if suggestion_progress_handle ~= nil then
+      suggestion_progress_handle:finish()
+      suggestion_progress_handle = nil
+    end
     return
   end
 
@@ -177,10 +185,9 @@ function M.suggest(prefix, suffix, middle)
       debounce_job_pid = -1
 
       context_line = middle
-      -- if suggestion_progress_handle ~= nil then
-      --   suggestion_progress_handle:finish()
-      -- end
-      -- suggestion_progress_handle = util.get_progress_handle("Suggesting...")
+      if suggestion_progress_handle == nil then
+        suggestion_progress_handle = util.get_progress_handle("Suggesting...")
+      end
       local suggestion_job = curl.post("http://localhost:11434/api/generate", {
         body = vim.json.encode({
           model = model,
@@ -188,6 +195,10 @@ function M.suggest(prefix, suffix, middle)
         }),
         callback = function()
           suggestion_job_pid = -1
+          if suggestion_progress_handle ~= nil then
+            suggestion_progress_handle:cancel()
+            suggestion_progress_handle = nil
+          end
         end,
         stream = function(err, data, s_job)
           if suggestion_job_pid ~= s_job.pid then
