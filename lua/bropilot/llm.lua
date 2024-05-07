@@ -148,15 +148,17 @@ local function on_data(data)
 
     M.clear()
 
-    local eot = string.find(suggestion, "<EOT>")
+    local eot_placeholder = "<EOT>"
+    local _, eot = string.find(suggestion, eot_placeholder)
     if eot then
       M.cancel()
-      suggestion = string.sub(suggestion, 0, eot - 1)
+      suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
     end
-    local block = string.find(suggestion, "\n\n")
+    local block_placeholder = "\n\n"
+    local _, block = string.find(suggestion, block_placeholder)
     if block then
       M.cancel()
-      suggestion = string.sub(suggestion, 0, block - 1)
+      suggestion = string.sub(suggestion, 0, block - #block_placeholder)
     end
 
     M.render_suggestion()
