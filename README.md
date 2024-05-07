@@ -28,11 +28,13 @@ systemctl status ollama
 
 Here is the default configuration.
 
-- `` is a string WIP.
+- `model` is a string enum ("codellama" | "codegemma" | "starcoder2").
+- `variant` is a string (e.g. "7b-code").
 
 ```lua
 require('bropilot').setup({
-  -- WIP
+  model = "codellama",
+  variant = "7b-code",
 })
 ```
 
@@ -48,7 +50,15 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       "j-hui/fidget.nvim", -- optional
     },
     config = true, -- setup with default options
-    -- does nothing if no keys
+    keys = {
+      {
+        "<Tab>",
+        function()
+          require("bropilot").accept_block()
+        end,
+        mode = "i",
+      },
+    },
   }
   -- or
   {
@@ -56,10 +66,11 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     event = "InsertEnter",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "j-hui/fidget.nvim", -- optional
+      -- "j-hui/fidget.nvim", -- optional
     },
     opts = {
-      -- WIP
+      model = "codellama",
+      variant = "7b-code",
     },
     config = function (_, opts)
         require("bropilot").setup(opts)
@@ -89,14 +100,15 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] accept line
 - [x] accept block
 - [x] progress while suggesting
-- [ ] cleanup current code
+- [x] cleanup current code
 - [ ] fix: remove additional newlines at end of suggestion
-- [ ] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
+- [x] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
 - [ ] fix: sometimes the pid is already killed => improve async processes handling
 - [ ] wait for model to be ready before trying to suggest (does ollama api provide that info?)
 - [ ] keep subsequent suggestions in memory (behind option? full suggestions might be heavy on memory)
 - [ ] custom init options
-  - [ ] model
+  - [x] model
+  - [x] variant
   - [ ] prompt (assert if unknown model)
   - [ ] suggest debounce time
   - [ ] show progress

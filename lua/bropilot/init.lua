@@ -3,31 +3,35 @@ local util = require("bropilot.util")
 
 local M = {}
 
+---@type {model: Model, variant: string}
 M.opts = {
-  autosuggest = true,
+  model = "codellama",
+  variant = "7b-code",
 }
 
-vim.api.nvim_create_autocmd({ "TextChangedI" }, {
+vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
   callback = function()
     local row = util.get_cursor()
-    local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)
+    local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
     local context_line = llm.get_context_line()
 
     local current_suggestion = llm.get_suggestion()
-    local suggestion_lines = {}
-    if current_suggestion ~= "" then
-      suggestion_lines = vim.split(current_suggestion, "\n")
-    end
+    local suggestion_lines = vim.split(current_suggestion, "\n")
 
-    if
-      #suggestion_lines > 0
-        and ((context_line == "" and suggestion_lines[1] == "")
-      or (
-        context_line ~= ""
-        and #current_line[1] >= #context_line
-        and string.find(context_line .. suggestion_lines[1], current_line[1])
-      ))
-    then
+    -- FIXME: can possibly be simplified
+    local has_suggestion = #current_suggestion > 0 and #suggestion_lines > 0
+    local partially_accepted_suggestion = has_suggestion
+      and context_line == ""
+      and suggestion_lines[1] == ""
+    local context_contains_suggestion = has_suggestion
+      and context_line ~= ""
+      and #current_line >= #context_line
+      and string.find(
+        context_line .. suggestion_lines[1],
+        vim.pesc(current_line)
+      )
+
+    if partially_accepted_suggestion or context_contains_suggestion then
       llm.render_suggestion()
       return
     end
@@ -35,9 +39,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI" }, {
     llm.cancel()
     llm.clear(true)
 
-    local prefix, suffix = util.get_context()
-
-    llm.suggest(prefix, suffix, current_line[1])
+    llm.suggest(M.opts.model, M.opts.variant, current_line)
   end,
 })
 
@@ -55,7 +57,7 @@ function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 
   -- llm.init(opts) -- setup options (model, prompt, keep_alive, params, etc...)
-  llm.preload_model()
+  llm.preload_model(M.opts.model, M.opts.variant)
 end
 
 return M

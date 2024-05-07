@@ -11,18 +11,11 @@ local extmark_id = -1
 local context_line = ""
 local suggestion_progress_handle = nil
 
+---@alias Model "codellama" | "codegemma" | "starcoder2"
+
 local M = {}
 
-local model = "codellama:7b-code"
--- local model = "codellama:13b-code"
---
--- local model = "codegemma:2b-code"
--- local model = "codegemma:7b-code"
---
--- local model = "starcoder2:3b"
--- local model = "starcoder2:7b"
-
----@type table<string, {prefix: string, suffix: string, middle: string}>
+---@type table<Model, {prefix: string, suffix: string, middle: string}>
 local prompt_map = {
   codellama = { prefix = "<PRE> ", suffix = " <SUF>", middle = " <MID>" },
   codegemma = {
@@ -37,17 +30,18 @@ local prompt_map = {
   },
 }
 
+---@param model Model
 ---@param prefix string
 ---@param suffix string
-local get_prompt = function(prefix, suffix)
-  local model_name = vim.split(model, ":")[1]
-  local prompt_data = prompt_map[model_name]
+---@return string
+local get_prompt = function(model, prefix, suffix)
+  local prompt_data = prompt_map[model]
   if prompt_data == nil then
     vim.notify(
-      "No prompt found for model " .. model_name .. " (" .. model .. ")",
+      "No prompt found for model " .. model .. " (" .. model .. ")",
       vim.log.levels.ERROR
     )
-    return
+    return ""
   end
   return prompt_data.prefix
     .. prefix
@@ -77,6 +71,7 @@ function M.cancel()
   end
 end
 
+---@param force boolean | nil
 function M.clear(force)
   if force then
     suggestion = ""
@@ -87,12 +82,14 @@ function M.clear(force)
   end
 end
 
-function M.preload_model()
+---@param model Model
+---@param variant string
+function M.preload_model(model, variant)
   local preload_progress_handle =
-    util.get_progress_handle("Preloading " .. model)
+    util.get_progress_handle("Preloading " .. model .. ":" .. variant)
   local preload_job = curl.post("http://localhost:11434/api/generate", {
     body = vim.json.encode({
-      model = model,
+      model = model .. ":" .. variant,
       keep_alive = "10m",
     }),
     callback = function()
@@ -143,20 +140,21 @@ function M.render_suggestion()
   extmark_id = vim.api.nvim_buf_set_extmark(0, ns_id, line, col, opts)
 end
 
+---@param data string
 local function on_data(data)
-  local body = vim.json.decode(data)
-  if body.done then
-    suggestion_job_pid = -1
-    if suggestion_progress_handle ~= nil then
-      suggestion_progress_handle:finish()
-      suggestion_progress_handle = nil
-    end
-    return
-  end
-
-  suggestion = suggestion .. (body.response or "")
-
   async.util.scheduler(function()
+    local body = vim.json.decode(data)
+    if body.done then
+      suggestion_job_pid = -1
+      if suggestion_progress_handle ~= nil then
+        suggestion_progress_handle:finish()
+        suggestion_progress_handle = nil
+      end
+      return
+    end
+
+    suggestion = suggestion .. (body.response or "")
+
     M.clear()
 
     local eot = string.find(suggestion, "<EOT>")
@@ -174,10 +172,15 @@ local function on_data(data)
   end)
 end
 
-function M.suggest(prefix, suffix, middle)
+---@param model Model
+---@param variant string
+---@param middle string
+function M.suggest(model, variant, middle)
+  local prefix, suffix = util.get_context()
+
   local debounce_job = Job:new({
     command = "sleep",
-    args = { "0.075" }, -- 75ms
+    args = { "0.1" }, -- 100ms
     on_exit = function(d_job)
       if debounce_job_pid ~= d_job.pid then
         return
@@ -190,8 +193,8 @@ function M.suggest(prefix, suffix, middle)
       end
       local suggestion_job = curl.post("http://localhost:11434/api/generate", {
         body = vim.json.encode({
-          model = model,
-          prompt = get_prompt(prefix, suffix),
+          model = model .. ":" .. variant,
+          prompt = get_prompt(model, prefix, suffix),
         }),
         callback = function()
           suggestion_job_pid = -1
@@ -217,10 +220,12 @@ function M.suggest(prefix, suffix, middle)
   debounce_job_pid = debounce_job.pid
 end
 
+---@return string
 function M.get_suggestion()
   return suggestion
 end
 
+---@return string
 function M.get_context_line()
   return context_line
 end
