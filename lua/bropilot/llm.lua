@@ -120,8 +120,8 @@ function M.render_suggestion()
   local suggestion_lines = vim.split(suggestion, "\n")
 
   if suggestion_lines[1] ~= "" then
-    local row = M.get_cursor()
-    local current_line = M.get_lines(row - 1, row)
+    local row = util.get_cursor()
+    local current_line = util.get_lines(row - 1, row)
     local diff = #current_line[1] - #context_line
     if diff > 0 then
       suggestion_lines[1] = string.sub(suggestion_lines[1], diff + 1)
