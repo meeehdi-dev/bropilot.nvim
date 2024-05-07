@@ -5,6 +5,7 @@ local util = require("bropilot.util")
 
 local debounce_job_pid = -1
 local suggestion_job_pid = -1
+local ready_job_pid = -1
 local suggestion = ""
 local context_line = ""
 local suggestion_progress_handle = nil
@@ -64,6 +65,13 @@ function M.cancel()
   if suggestion_job_pid ~= -1 then
     local kill = suggestion_job_pid
     suggestion_job_pid = -1
+    pcall(function()
+      io.popen("kill " .. kill)
+    end)
+  end
+  if ready_job_pid ~= -1 then
+    local kill = ready_job_pid
+    ready_job_pid = -1
     pcall(function()
       io.popen("kill " .. kill)
     end)
@@ -170,8 +178,19 @@ end
 ---@param middle string
 function M.suggest(model, variant, middle)
   if not ready then
-    -- TODO: debounce and retry while preloading
-    vim.notify("NOT READY", vim.log.levels.WARN)
+    M.cancel()
+    local ready_job = Job:new({
+      command = "sleep",
+      args = { 0.1 },
+      on_exit = function(r_job)
+        if ready_job_pid ~= r_job.pid then
+          return
+        end
+        ready_job_pid = -1
+        M.suggest(model, variant, middle)
+      end
+    })
+    ready_job:start()
     return
   end
   local prefix, suffix = util.get_context()
