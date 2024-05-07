@@ -31,6 +31,7 @@ end
 
 function M.get_progress_handle(title)
   if not has_progress then
+    vim.notify("Bropilot: " .. title, vim.log.levels.INFO)
     return nil
   end
   return progress.handle.create({
