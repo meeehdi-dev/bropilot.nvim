@@ -10,8 +10,13 @@ local suggestion = ""
 local extmark_id = -1
 local context_line = ""
 local suggestion_progress_handle = nil
+local ready = false
 
+---@alias Options {model: Model, variant: string, debounce: number}
 ---@alias Model "codellama" | "codegemma" | "starcoder2"
+
+---@type Options
+local opts = {}
 
 local M = {}
 
@@ -84,12 +89,13 @@ end
 
 ---@param model Model
 ---@param variant string
-function M.preload_model(model, variant)
+local function preload_model(model, variant)
+  local model_name = util.join({ model, variant }, ":")
   local preload_progress_handle =
-    util.get_progress_handle("Preloading " .. model .. ":" .. variant)
+    util.get_progress_handle("Preloading " .. model_name)
   local preload_job = curl.post("http://localhost:11434/api/generate", {
     body = vim.json.encode({
-      model = model .. ":" .. variant,
+      model = model_name,
       keep_alive = "10m",
     }),
     callback = function()
@@ -97,30 +103,37 @@ function M.preload_model(model, variant)
         preload_progress_handle:finish()
         preload_progress_handle = nil
       end
+      ready = true
     end,
   })
   preload_job:start()
 end
 
+---@param init_options Options
+function M.init(init_options)
+  opts = init_options
+  preload_model(opts.model, opts.variant)
+end
+
 function M.render_suggestion()
   M.clear()
 
-  local suggestion_lines = vim.split(suggestion, "\n")
-  if #suggestion_lines == 0 then
+  if suggestion == "" then
     return
   end
 
+  local suggestion_lines = vim.split(suggestion, "\n")
+
   if suggestion_lines[1] ~= "" then
     local row = util.get_cursor()
-    local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)
+    local current_line = util.get_lines(row - 1, row)
     local diff = #current_line[1] - #context_line
     if diff > 0 then
       suggestion_lines[1] = string.sub(suggestion_lines[1], diff + 1)
     end
   end
 
-  local opts = {
-    hl_mode = "combine",
+  local extmark_opts = {
     virt_text_pos = "overlay",
     virt_text = { { suggestion_lines[1], "Comment" } },
   }
@@ -132,12 +145,12 @@ function M.render_suggestion()
         virt_lines[k - 1] = { { v, "Comment" } }
       end
     end
-    opts.virt_lines = virt_lines
+    extmark_opts.virt_lines = virt_lines
   end
 
   local line, col = util.get_pos()
 
-  extmark_id = vim.api.nvim_buf_set_extmark(0, ns_id, line, col, opts)
+  extmark_id = vim.api.nvim_buf_set_extmark(0, ns_id, line, col, extmark_opts)
 end
 
 ---@param data string
@@ -176,11 +189,16 @@ end
 ---@param variant string
 ---@param middle string
 function M.suggest(model, variant, middle)
+  if not ready then
+    -- TODO: debounce and retry while preloading
+    vim.notify("NOT READY", vim.log.levels.WARN)
+    return
+  end
   local prefix, suffix = util.get_context()
 
   local debounce_job = Job:new({
     command = "sleep",
-    args = { "0.1" }, -- 100ms
+    args = { tostring(opts.debounce / 1000) },
     on_exit = function(d_job)
       if debounce_job_pid ~= d_job.pid then
         return
@@ -193,7 +211,7 @@ function M.suggest(model, variant, middle)
       end
       local suggestion_job = curl.post("http://localhost:11434/api/generate", {
         body = vim.json.encode({
-          model = model .. ":" .. variant,
+          model = util.join({ model, variant }, ":"),
           prompt = get_prompt(model, prefix, suffix),
         }),
         callback = function()
@@ -246,7 +264,7 @@ function M.accept_line()
   vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_lines[1] })
   col = #suggestion_lines[1]
   suggestion_lines[1] = ""
-  suggestion = table.concat(suggestion_lines, "\n")
+  suggestion = util.join(suggestion_lines)
   vim.api.nvim_win_set_cursor(0, { start + 1, col })
   context_line = ""
 end

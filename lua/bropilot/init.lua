@@ -3,10 +3,11 @@ local util = require("bropilot.util")
 
 local M = {}
 
----@type {model: Model, variant: string}
+---@type Options
 M.opts = {
   model = "codellama",
   variant = "7b-code",
+  debounce = 100,
 }
 
 vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
@@ -56,8 +57,8 @@ M.accept_suggestion = llm.accept_block
 function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 
-  -- llm.init(opts) -- setup options (model, prompt, keep_alive, params, etc...)
-  llm.preload_model(M.opts.model, M.opts.variant)
+  -- setup options (model, prompt, keep_alive, params, etc...)
+  llm.init(M.opts)
 end
 
 return M

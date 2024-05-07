@@ -30,11 +30,13 @@ Here is the default configuration.
 
 - `model` is a string enum ("codellama" | "codegemma" | "starcoder2").
 - `variant` is a string (e.g. "7b-code").
+- `debounce` is a number in milliseconds (e.g. "7b-code").
 
 ```lua
 require('bropilot').setup({
   model = "codellama",
   variant = "7b-code",
+  debounce = 100
 })
 ```
 
@@ -71,6 +73,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     opts = {
       model = "codellama",
       variant = "7b-code",
+      debounce = 100,
     },
     config = function (_, opts)
         require("bropilot").setup(opts)
