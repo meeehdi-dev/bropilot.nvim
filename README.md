@@ -78,6 +78,10 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] accept block
 - [x] progress while suggesting
 - [ ] cleanup current code
+- [ ] fix: remove additional newlines at end of suggestion
+- [ ] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
+- [ ] fix: sometimes the pid is already killed => improve async processes handling
+- [ ] wait for model to be ready before trying to suggest (does ollama api provide that info?)
 - [ ] keep subsequent suggestions in memory (behind option? full suggestions might be heavy on memory)
 - [ ] custom init options (+ assert prompt if unknown model)
 - [ ] check if model is listed in ollama api
