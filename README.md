@@ -83,7 +83,12 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [ ] fix: sometimes the pid is already killed => improve async processes handling
 - [ ] wait for model to be ready before trying to suggest (does ollama api provide that info?)
 - [ ] keep subsequent suggestions in memory (behind option? full suggestions might be heavy on memory)
-- [ ] custom init options (+ assert prompt if unknown model)
+- [ ] custom init options
+  - [ ] model
+  - [ ] prompt (assert if unknown model)
+  - [ ] suggest debounce time
+  - [ ] show progress
+  - [ ] ollama params
 - [ ] check if model is listed in ollama api
 - [ ] pull model if not listed (behind option)
 - [ ] replace unix sleep with async job
