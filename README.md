@@ -76,7 +76,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] show suggestion as virtual text
 - [x] accept line
 - [x] accept block
-- [ ] progress while suggesting
+- [x] progress while suggesting
 - [ ] cleanup current code
 - [ ] keep subsequent suggestions in memory (behind option? full suggestions might be heavy on memory)
 - [ ] custom init options (+ assert prompt if unknown model)
