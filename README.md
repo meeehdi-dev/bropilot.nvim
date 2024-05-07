@@ -1,6 +1,6 @@
 # Bropilot.nvim
 
-Bropilot is a GitHub Copilot alternative that takes advantage of local LLMs through Ollama's API.
+Bropilot is a [GitHub Copilot](https://github.com/github/copilot.vim) alternative that takes advantage of local LLMs through [Ollama](https://ollama.com/)'s API.
 
 Current working models:
 - codellama (7b & 13b)
@@ -11,6 +11,18 @@ Current working models:
 ![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/ff18e6c8-691f-48ea-8f71-5f187a35b89a)
 
 
+
+## Setup
+
+You need to have [Ollama](https://ollama.com/) installed and running for bro to work.
+[Official download link](https://ollama.com/download)
+
+For Linux:
+```sh
+curl -fsSL https://ollama.com/install.sh | sh
+# And check that the service is running
+systemctl status ollama
+```
 
 ## Configuration
 
