@@ -3,11 +3,9 @@ local Job = require("plenary.job")
 local async = require("plenary.async")
 local util = require("bropilot.util")
 
-local ns_id = vim.api.nvim_create_namespace("bropilot")
 local debounce_job_pid = -1
 local suggestion_job_pid = -1
 local suggestion = ""
-local extmark_id = -1
 local context_line = ""
 local suggestion_progress_handle = nil
 local ready = false
@@ -81,10 +79,7 @@ function M.clear(force)
   if force then
     suggestion = ""
   end
-  if extmark_id ~= -1 then
-    vim.api.nvim_buf_del_extmark(0, ns_id, extmark_id)
-    extmark_id = -1
-  end
+  util.clear_virtual_text()
 end
 
 ---@param model Model
@@ -125,32 +120,15 @@ function M.render_suggestion()
   local suggestion_lines = vim.split(suggestion, "\n")
 
   if suggestion_lines[1] ~= "" then
-    local row = util.get_cursor()
-    local current_line = util.get_lines(row - 1, row)
+    local row = M.get_cursor()
+    local current_line = M.get_lines(row - 1, row)
     local diff = #current_line[1] - #context_line
     if diff > 0 then
       suggestion_lines[1] = string.sub(suggestion_lines[1], diff + 1)
     end
   end
 
-  local extmark_opts = {
-    virt_text_pos = "overlay",
-    virt_text = { { suggestion_lines[1], "Comment" } },
-  }
-
-  if #suggestion_lines > 1 then
-    local virt_lines = {}
-    for k, v in ipairs(suggestion_lines) do
-      if k > 1 then -- skip first line
-        virt_lines[k - 1] = { { v, "Comment" } }
-      end
-    end
-    extmark_opts.virt_lines = virt_lines
-  end
-
-  local line, col = util.get_pos()
-
-  extmark_id = vim.api.nvim_buf_set_extmark(0, ns_id, line, col, extmark_opts)
+  util.render_virtual_text(suggestion_lines)
 end
 
 ---@param data string
