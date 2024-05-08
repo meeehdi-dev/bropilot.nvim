@@ -125,14 +125,16 @@ function M.render_suggestion()
     return
   end
 
-  local suggestion_lines = vim.split(suggestion, "\n")
+  local block = vim.split(suggestion, "\n\n")[1] -- only take first block when rendering
+
+  local suggestion_lines = vim.split(block, "\n")
 
   if suggestion_lines[1] ~= "" then
-    local row = util.get_cursor()
-    local current_line = util.get_lines(row - 1, row)
-    local diff = #current_line[1] - #context_line
+    local row, col = util.get_cursor()
+    local current_line = util.get_lines(row - 1, row)[1]
+    local diff = #current_line - #context_line
     if diff > 0 then
-      suggestion_lines[1] = string.sub(suggestion_lines[1], diff + 1)
+      suggestion_lines[1] = string.sub(current_line, col + 1) .. string.sub(suggestion_lines[1], diff + 1)
     end
   end
 
@@ -162,12 +164,13 @@ local function on_data(data)
       M.cancel()
       suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
     end
-    local block_placeholder = "\n\n"
-    local _, block = string.find(suggestion, block_placeholder)
-    if block then
-      M.cancel()
-      suggestion = string.sub(suggestion, 0, block - #block_placeholder)
-    end
+    -- TODO: use in option (default should be true, bc suggestions can be long af)
+    -- local block_placeholder = "\n\n"
+    -- local _, block = string.find(suggestion, block_placeholder)
+    -- if block then
+    --   M.cancel()
+    --   suggestion = string.sub(suggestion, 0, block - #block_placeholder)
+    -- end
 
     M.render_suggestion()
   end)
@@ -175,8 +178,14 @@ end
 
 ---@param model Model
 ---@param variant string
----@param middle string
-function M.suggest(model, variant, middle)
+---@param current_line string
+function M.suggest(model, variant, current_line)
+  local _, col = util.get_cursor()
+  if col < #current_line then
+    -- TODO: trim but only trailing whitespace (not vim.trim()...)
+    return -- cancel because cursor is before end of line
+  end
+
   if not ready then
     M.cancel()
     local ready_job = Job:new({
@@ -187,8 +196,8 @@ function M.suggest(model, variant, middle)
           return
         end
         ready_job_pid = -1
-        M.suggest(model, variant, middle)
-      end
+        M.suggest(model, variant, current_line)
+      end,
     })
     ready_job:start()
     return
@@ -204,7 +213,7 @@ function M.suggest(model, variant, middle)
       end
       debounce_job_pid = -1
 
-      context_line = middle
+      context_line = current_line
       if suggestion_progress_handle == nil then
         suggestion_progress_handle = util.get_progress_handle("Suggesting...")
       end
@@ -252,7 +261,9 @@ function M.accept_line()
     return
   end
 
-  local suggestion_lines = vim.split(suggestion, "\n")
+  local block = vim.split(suggestion, "\n\n")[1]
+
+  local suggestion_lines = vim.split(block, "\n")
   local row, col = util.get_cursor()
   local start = row - 1
   if context_line == "" and suggestion_lines[1] == "" then
@@ -263,18 +274,21 @@ function M.accept_line()
   vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_lines[1] })
   col = #suggestion_lines[1]
   suggestion_lines[1] = ""
-  suggestion = util.join(suggestion_lines)
   vim.api.nvim_win_set_cursor(0, { start + 1, col })
+
+  suggestion = string.sub(suggestion, col) -- remove first line of suggestion
   context_line = ""
 end
 
 function M.accept_block()
-  if #suggestion == 0 then
+  if suggestion == "" then
     return
   end
 
+  local block = vim.split(suggestion, "\n\n")[1]
+
   local row = util.get_cursor()
-  local suggestion_lines = vim.split(suggestion, "\n")
+  local suggestion_lines = vim.split(block, "\n")
   local start = row - 1
   if context_line == "" and suggestion_lines[1] == "" then
     start = start + 1
@@ -284,7 +298,10 @@ function M.accept_block()
   vim.api.nvim_buf_set_lines(0, start, row, true, suggestion_lines)
   local col = #suggestion_lines[#suggestion_lines]
   vim.api.nvim_win_set_cursor(0, { start + #suggestion_lines, col })
-  M.clear(true)
+
+  -- FIXME: doesn't work atm
+  suggestion = string.sub(suggestion, #block) -- remove first block
+  context_line = ""
 end
 
 return M

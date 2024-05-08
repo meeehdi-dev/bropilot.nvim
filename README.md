@@ -104,7 +104,8 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] accept block
 - [x] progress while suggesting
 - [x] cleanup current code
-- [ ] skip suggestion if text after cursor (except if just moving?)
+- [x] skip suggestion if text after cursor (except if just moving?)
+- [ ] fix: accepting line resets suggestion
 - [ ] fix: remove additional newlines at end of suggestion
 - [x] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
 - [ ] fix: partial accept + newline => doesn't clear suggestion
@@ -113,13 +114,15 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] wait for model to be ready before trying to suggest (does ollama api provide that info? -> using preload)
 - [ ] check that suggestion is created after model ready
 - [ ] notify on ollama api errors
-- [ ] keep subsequent suggestions in memory (behind option? full suggestions might be heavy on memory)
+- [x] keep subsequent suggestions in memory
+- [ ] accepting block resets suggestions
 - [ ] custom init options
   - [x] model
   - [x] variant
   - [ ] prompt (assert if unknown model)
   - [x] debounce time
   - [ ] show progress
+  - [ ] keep all current suggestions in memory
   - [ ] ollama params
 - [ ] check if model is listed in ollama api
 - [ ] pull model if not listed (behind option)
