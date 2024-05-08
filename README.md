@@ -79,8 +79,16 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
         require("bropilot").setup(opts)
     end,
     keys = {
+      -- Soon
       {
         "<C-Right>",
+        function()
+          require("bropilot").accept_word()
+        end,
+        mode = "i",
+      },
+      {
+        "<M-Right>",
         function()
           require("bropilot").accept_line()
         end,
