@@ -11,7 +11,7 @@ local context_line = ""
 local suggestion_progress_handle = nil
 local ready = false
 
----@alias Options {model: Model, variant: string, debounce: number}
+---@alias Options {model: Model, tag: string, debounce: number}
 ---@alias Model "codellama" | "codegemma" | "starcoder2"
 
 ---@type Options
@@ -90,9 +90,10 @@ function M.clear(force)
   util.clear_virtual_text()
 end
 
-local function list_models()
-  local list_progress_handle =
-    util.get_progress_handle("Listing models")
+---@param model string
+---@param cb function
+local function check_model(model, cb)
+  local list_progress_handle = util.get_progress_handle("Listing models")
   local list_job = curl.get("http://localhost:11434/api/tags", {
     callback = function(data)
       async.util.scheduler(function()
@@ -101,11 +102,13 @@ local function list_models()
           list_progress_handle = nil
         end
         local body = vim.json.decode(data.body)
-        local model_names = {}
-        for _,v in ipairs(body.models) do
-          table.insert(model_names, v.name)
+        for _, v in ipairs(body.models) do
+          if v.name == model then
+            cb(true)
+            return
+          end
         end
-        -- TODO: callback?
+        cb(false)
       end)
     end,
   })
@@ -113,11 +116,12 @@ local function list_models()
 end
 
 ---@param model Model
----@param variant string
-local function preload_model(model, variant)
-  local model_name = util.join({ model, variant }, ":")
-  list_models()
-  -- TODO: check if model_name is included in list
+---@param tag string
+local function preload_model(model, tag)
+  local model_name = util.join({ model, tag }, ":")
+  check_model(model_name, function(found)
+    vim.notify("FOUND? " .. (found and "true" or "false"))
+  end)
   -- TODO: if option, pull model
   -- TODO: debounce wait while doing all this
   local preload_progress_handle =
@@ -143,7 +147,14 @@ end
 ---@param init_options Options
 function M.init(init_options)
   opts = init_options
-  preload_model(opts.model, opts.variant)
+  local model_name = util.join({ opts.model, opts.tag }, ":")
+  check_model(model_name, function(found)
+    if found then
+      preload_model(opts.model, opts.tag)
+    else
+      vim.notify("Model " .. model_name .. " not found", vim.log.levels.ERROR)
+    end
+  end)
 end
 
 function M.render_suggestion()
@@ -205,9 +216,9 @@ local function on_data(data)
 end
 
 ---@param model Model
----@param variant string
+---@param tag string
 ---@param current_line string
-function M.suggest(model, variant, current_line)
+function M.suggest(model, tag, current_line)
   local _, col = util.get_cursor()
   if col < #current_line then
     -- TODO: trim but only trailing whitespace (not vim.trim()...)
@@ -225,7 +236,7 @@ function M.suggest(model, variant, current_line)
             return
           end
           ready_job_pid = -1
-          M.suggest(model, variant, current_line)
+          M.suggest(model, tag, current_line)
         end)
       end,
     })
@@ -251,7 +262,7 @@ function M.suggest(model, variant, current_line)
         local suggestion_job =
           curl.post("http://localhost:11434/api/generate", {
             body = vim.json.encode({
-              model = util.join({ model, variant }, ":"),
+              model = util.join({ model, tag }, ":"),
               prompt = get_prompt(model, prefix, suffix),
             }),
             callback = function()

@@ -6,7 +6,7 @@ local M = {}
 ---@type Options
 M.opts = {
   model = "codellama",
-  variant = "7b-code",
+  tag = "7b-code",
   debounce = 100,
 }
 
@@ -42,7 +42,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
     llm.cancel()
     llm.clear(true)
 
-    llm.suggest(M.opts.model, M.opts.variant, current_line)
+    llm.suggest(M.opts.model, M.opts.tag, current_line)
   end,
 })
 
