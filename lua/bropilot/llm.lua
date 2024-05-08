@@ -283,19 +283,23 @@ function M.accept_line()
   local block = vim.split(suggestion, "\n\n")[1]
 
   local suggestion_lines = vim.split(block, "\n")
-  local row, col = util.get_cursor()
+  local suggestion_line = suggestion_lines[1]
+  local row = util.get_cursor()
   local start = row - 1
-  if context_line == "" and suggestion_lines[1] == "" then
+  local sug_start = 0
+  if context_line == "" and suggestion_line == "" then
     start = start + 1
     table.remove(suggestion_lines, 1)
+    suggestion_line = suggestion_lines[1]
+    sug_start = 1
   end
-  suggestion_lines[1] = context_line .. suggestion_lines[1]
-  vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_lines[1] })
-  col = #suggestion_lines[1]
-  suggestion_lines[1] = ""
+  local len = #suggestion_line
+  suggestion_line = context_line .. suggestion_line
+  local col = #suggestion_line
+  vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_line })
   vim.api.nvim_win_set_cursor(0, { start + 1, col })
 
-  suggestion = string.sub(suggestion, col) -- remove first line of suggestion
+  suggestion = string.sub(suggestion, sug_start + len + 1)
   context_line = ""
 end
 

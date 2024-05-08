@@ -105,7 +105,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] progress while suggesting
 - [x] cleanup current code
 - [x] skip suggestion if text after cursor (except if just moving?)
-- [ ] fix: accepting line resets suggestion
+- [x] fix: accepting line resets suggestion
 - [ ] fix: remove additional newlines at end of suggestion
 - [x] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
 - [ ] fix: partial accept + newline => doesn't clear suggestion

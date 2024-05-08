@@ -20,7 +20,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
     local suggestion_lines = vim.split(current_suggestion, "\n")
 
     -- FIXME: can possibly be simplified
-    local has_suggestion = #current_suggestion > 0 and #suggestion_lines > 0
+    local has_suggestion = current_suggestion ~= "" and #suggestion_lines > 0
     local partially_accepted_suggestion = has_suggestion
       and context_line == ""
       and suggestion_lines[1] == ""
