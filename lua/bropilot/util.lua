@@ -72,7 +72,7 @@ function M.render_virtual_text(lines)
     local virt_lines = {}
     for k, v in ipairs(lines) do
       if k > 1 then -- skip first line
-        virt_lines[k - 1] = { { v, "Comment" } }
+        table.insert(virt_lines, { { v, "Comment" } })
       end
     end
     extmark_opts.virt_lines = virt_lines
