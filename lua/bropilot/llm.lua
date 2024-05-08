@@ -90,10 +90,36 @@ function M.clear(force)
   util.clear_virtual_text()
 end
 
+local function list_models()
+  local list_progress_handle =
+    util.get_progress_handle("Listing models")
+  local list_job = curl.get("http://localhost:11434/api/tags", {
+    callback = function(data)
+      async.util.scheduler(function()
+        if list_progress_handle ~= nil then
+          list_progress_handle:finish()
+          list_progress_handle = nil
+        end
+        local body = vim.json.decode(data.body)
+        local model_names = {}
+        for _,v in ipairs(body.models) do
+          table.insert(model_names, v.name)
+        end
+        -- TODO: callback?
+      end)
+    end,
+  })
+  list_job:start()
+end
+
 ---@param model Model
 ---@param variant string
 local function preload_model(model, variant)
   local model_name = util.join({ model, variant }, ":")
+  list_models()
+  -- TODO: check if model_name is included in list
+  -- TODO: if option, pull model
+  -- TODO: debounce wait while doing all this
   local preload_progress_handle =
     util.get_progress_handle("Preloading " .. model_name)
   local preload_job = curl.post("http://localhost:11434/api/generate", {
