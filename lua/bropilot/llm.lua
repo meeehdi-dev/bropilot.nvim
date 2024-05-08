@@ -102,11 +102,13 @@ local function preload_model(model, variant)
       keep_alive = "10m",
     }),
     callback = function()
-      if preload_progress_handle ~= nil then
-        preload_progress_handle:finish()
-        preload_progress_handle = nil
-      end
-      ready = true
+      async.util.scheduler(function()
+        if preload_progress_handle ~= nil then
+          preload_progress_handle:finish()
+          preload_progress_handle = nil
+        end
+        ready = true
+      end)
     end,
   })
   preload_job:start()
@@ -135,7 +137,8 @@ function M.render_suggestion()
     local current_line = util.get_lines(row - 1, row)[1]
     local diff = #current_line - #context_line
     if diff > 0 then
-      suggestion_lines[1] = string.sub(current_line, col + 1) .. string.sub(suggestion_lines[1], diff + 1)
+      suggestion_lines[1] = string.sub(current_line, col + 1)
+        .. string.sub(suggestion_lines[1], diff + 1)
     end
   end
 
@@ -144,37 +147,35 @@ end
 
 ---@param data string
 local function on_data(data)
-  async.util.scheduler(function()
-    local body = vim.json.decode(data)
-    if body.done then
-      suggestion_job_pid = -1
-      if suggestion_progress_handle ~= nil then
-        suggestion_progress_handle:finish()
-        suggestion_progress_handle = nil
-      end
-      return
+  local body = vim.json.decode(data)
+  if body.done then
+    suggestion_job_pid = -1
+    if suggestion_progress_handle ~= nil then
+      suggestion_progress_handle:finish()
+      suggestion_progress_handle = nil
     end
+    return
+  end
 
-    suggestion = suggestion .. (body.response or "")
+  suggestion = suggestion .. (body.response or "")
 
-    M.clear()
+  M.clear()
 
-    local eot_placeholder = "<EOT>"
-    local _, eot = string.find(suggestion, eot_placeholder)
-    if eot then
-      M.cancel()
-      suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
-    end
-    -- TODO: use in option (default should be true, bc suggestions can be long af)
-    -- local block_placeholder = "\n\n"
-    -- local _, block = string.find(suggestion, block_placeholder)
-    -- if block then
-    --   M.cancel()
-    --   suggestion = string.sub(suggestion, 0, block - #block_placeholder)
-    -- end
+  local eot_placeholder = "<EOT>"
+  local _, eot = string.find(suggestion, eot_placeholder)
+  if eot then
+    M.cancel()
+    suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
+  end
+  -- TODO: use in option (default should be true, bc suggestions can be long af)
+  -- local block_placeholder = "\n\n"
+  -- local _, block = string.find(suggestion, block_placeholder)
+  -- if block then
+  --   M.cancel()
+  --   suggestion = string.sub(suggestion, 0, block - #block_placeholder)
+  -- end
 
-    M.render_suggestion()
-  end)
+  M.render_suggestion()
 end
 
 ---@param model Model
@@ -193,11 +194,13 @@ function M.suggest(model, variant, current_line)
       command = "sleep",
       args = { 0.1 },
       on_exit = function(r_job)
-        if ready_job_pid ~= r_job.pid then
-          return
-        end
-        ready_job_pid = -1
-        M.suggest(model, variant, current_line)
+        async.util.scheduler(function()
+          if ready_job_pid ~= r_job.pid then
+            return
+          end
+          ready_job_pid = -1
+          M.suggest(model, variant, current_line)
+        end)
       end,
     })
     ready_job:start()
@@ -209,38 +212,45 @@ function M.suggest(model, variant, current_line)
     command = "sleep",
     args = { tostring(opts.debounce / 1000) },
     on_exit = function(d_job)
-      if debounce_job_pid ~= d_job.pid then
-        return
-      end
-      debounce_job_pid = -1
+      async.util.scheduler(function()
+        if debounce_job_pid ~= d_job.pid then
+          return
+        end
+        debounce_job_pid = -1
 
-      context_line = current_line
-      if suggestion_progress_handle == nil then
-        suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-      end
-      local suggestion_job = curl.post("http://localhost:11434/api/generate", {
-        body = vim.json.encode({
-          model = util.join({ model, variant }, ":"),
-          prompt = get_prompt(model, prefix, suffix),
-        }),
-        callback = function()
-          suggestion_job_pid = -1
-          if suggestion_progress_handle ~= nil then
-            suggestion_progress_handle:cancel()
-            suggestion_progress_handle = nil
-          end
-        end,
-        stream = function(err, data, s_job)
-          if suggestion_job_pid ~= s_job.pid then
-            return
-          end
-          if err then
-            vim.notify(err, vim.log.levels.ERROR)
-          end
-          on_data(data)
-        end,
-      })
-      suggestion_job_pid = suggestion_job.pid
+        context_line = current_line
+        if suggestion_progress_handle == nil then
+          suggestion_progress_handle = util.get_progress_handle("Suggesting...")
+        end
+        local suggestion_job =
+          curl.post("http://localhost:11434/api/generate", {
+            body = vim.json.encode({
+              model = util.join({ model, variant }, ":"),
+              prompt = get_prompt(model, prefix, suffix),
+            }),
+            callback = function()
+              async.util.scheduler(function()
+                suggestion_job_pid = -1
+                if suggestion_progress_handle ~= nil then
+                  suggestion_progress_handle:cancel()
+                  suggestion_progress_handle = nil
+                end
+              end)
+            end,
+            stream = function(err, data, s_job)
+              async.util.scheduler(function()
+                if suggestion_job_pid ~= s_job.pid then
+                  return
+                end
+                if err then
+                  vim.notify(err, vim.log.levels.ERROR)
+                end
+                on_data(data)
+              end)
+            end,
+          })
+        suggestion_job_pid = suggestion_job.pid
+      end)
     end,
   })
   debounce_job:start()
@@ -265,7 +275,7 @@ function M.accept_word()
   local block = vim.split(suggestion, "\n\n")[1]
 
   local suggestion_lines = vim.split(block, "\n")
-  local row, col = util.get_cursor()
+  local row = util.get_cursor()
   local start = row - 1
   if context_line == "" and suggestion_lines[1] == "" then
     start = start + 1
@@ -323,11 +333,15 @@ function M.accept_block()
   local len = #block
   suggestion_lines[1] = context_line .. suggestion_lines[1]
   vim.api.nvim_buf_set_lines(0, start, row, true, suggestion_lines)
-  local col = #suggestion_lines[#suggestion_lines]
+  local last_line = suggestion_lines[#suggestion_lines]
+  local col = #last_line
+  if last_line == "" then
+    col = 0
+  end
   vim.api.nvim_win_set_cursor(0, { start + #suggestion_lines, col })
 
   -- FIXME: doesn't work atm
-  suggestion = string.sub(suggestion, sug_start + len + 2) -- remove first block
+  suggestion = string.sub(suggestion, sug_start + len + 1) -- remove first block
   context_line = ""
 end
 
