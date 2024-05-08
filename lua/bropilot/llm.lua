@@ -125,9 +125,10 @@ function M.render_suggestion()
     return
   end
 
-  local block = vim.split(suggestion, "\n\n")[1] -- only take first block when rendering
-
-  local suggestion_lines = vim.split(block, "\n")
+  -- keep showing all suggestions but accept only block by block
+  -- local block = vim.split(suggestion, "\n\n")[1] -- only take first block when rendering
+  -- local suggestion_lines = vim.split(block, "\n")
+  local suggestion_lines = vim.split(suggestion, "\n")
 
   if suggestion_lines[1] ~= "" then
     local row, col = util.get_cursor()
@@ -313,17 +314,20 @@ function M.accept_block()
   local row = util.get_cursor()
   local suggestion_lines = vim.split(block, "\n")
   local start = row - 1
+  local sug_start = 0
   if context_line == "" and suggestion_lines[1] == "" then
     start = start + 1
     table.remove(suggestion_lines, 1)
+    sug_start = 1
   end
+  local len = #block
   suggestion_lines[1] = context_line .. suggestion_lines[1]
   vim.api.nvim_buf_set_lines(0, start, row, true, suggestion_lines)
   local col = #suggestion_lines[#suggestion_lines]
   vim.api.nvim_win_set_cursor(0, { start + #suggestion_lines, col })
 
   -- FIXME: doesn't work atm
-  suggestion = string.sub(suggestion, #block) -- remove first block
+  suggestion = string.sub(suggestion, sug_start + len + 2) -- remove first block
   context_line = ""
 end
 
