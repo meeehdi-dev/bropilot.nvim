@@ -93,13 +93,14 @@ end
 ---@param model string
 ---@param cb function
 local function check_model(model, cb)
-  local list_progress_handle = util.get_progress_handle("Listing models")
-  local list_job = curl.get("http://localhost:11434/api/tags", {
+  local check_progress_handle =
+    util.get_progress_handle("Checking model " .. model)
+  local check_job = curl.get("http://localhost:11434/api/tags", {
     callback = function(data)
       async.util.scheduler(function()
-        if list_progress_handle ~= nil then
-          list_progress_handle:finish()
-          list_progress_handle = nil
+        if check_progress_handle ~= nil then
+          check_progress_handle:finish()
+          check_progress_handle = nil
         end
         local body = vim.json.decode(data.body)
         for _, v in ipairs(body.models) do
@@ -112,18 +113,48 @@ local function check_model(model, cb)
       end)
     end,
   })
-  list_job:start()
+  check_job:start()
 end
 
----@param model Model
----@param tag string
-local function preload_model(model, tag)
-  local model_name = util.join({ model, tag }, ":")
-  check_model(model_name, function(found)
-    vim.notify("FOUND? " .. (found and "true" or "false"))
-  end)
-  -- TODO: if option, pull model
-  -- TODO: debounce wait while doing all this
+---@param model string
+---@param cb function
+local function pull_model(model, cb)
+  local pull_progress_handle =
+    util.get_progress_handle("Pulling model " .. model)
+  local pull_job_pid = -1
+  local pull_job = curl.post("http://localhost:11434/api/pull", {
+    body = vim.json.encode({ name = model }),
+    callback = function()
+      async.util.scheduler(function()
+        pull_job_pid = -1
+        if pull_progress_handle ~= nil then
+          pull_progress_handle:cancel()
+          pull_progress_handle = nil
+        end
+      end)
+    end,
+    stream = function(err, data, s_job)
+      async.util.scheduler(function()
+        if pull_job_pid ~= s_job.pid then
+          return
+        end
+        if err then
+          vim.notify(err, vim.log.levels.ERROR)
+        end
+        local body = vim.json.decode(data.body)
+        if pull_progress_handle ~= nil and body.status == "success" then
+          pull_progress_handle:finish()
+          pull_progress_handle = nil
+        end
+        vim.notify("test: " .. body.status)
+      end)
+    end,
+  })
+  pull_job:start()
+end
+
+---@param model_name string
+local function preload_model(model_name)
   local preload_progress_handle =
     util.get_progress_handle("Preloading " .. model_name)
   local preload_job = curl.post("http://localhost:11434/api/generate", {
@@ -150,9 +181,12 @@ function M.init(init_options)
   local model_name = util.join({ opts.model, opts.tag }, ":")
   check_model(model_name, function(found)
     if found then
-      preload_model(opts.model, opts.tag)
+      preload_model(model_name)
     else
       vim.notify("Model " .. model_name .. " not found", vim.log.levels.ERROR)
+      pull_model(model_name, function()
+        vim.notify("test")
+      end)
     end
   end)
 end
