@@ -122,7 +122,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   - [ ] prompt (assert if unknown model)
   - [x] debounce time
   - [ ] show progress
-  - [ ] keep all current suggestions in memory
+  - [ ] keep all current suggestions in memory (option to keep only n blocks)
   - [ ] ollama params
 - [ ] check if model is listed in ollama api
 - [ ] pull model if not listed (behind option)
