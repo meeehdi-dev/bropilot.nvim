@@ -51,8 +51,9 @@ vim.api.nvim_create_autocmd({ "InsertLeave" }, {
   end,
 })
 
+M.accept_word = llm.accept_word
 M.accept_line = llm.accept_line
-M.accept_suggestion = llm.accept_block
+M.accept_block = llm.accept_block
 
 function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})

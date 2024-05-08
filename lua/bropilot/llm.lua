@@ -256,6 +256,25 @@ function M.get_context_line()
   return context_line
 end
 
+function M.accept_word()
+  if #suggestion == 0 then
+    return
+  end
+
+  local block = vim.split(suggestion, "\n\n")[1]
+
+  local suggestion_lines = vim.split(block, "\n")
+  local row, col = util.get_cursor()
+  local start = row - 1
+  if context_line == "" and suggestion_lines[1] == "" then
+    start = start + 1
+    table.remove(suggestion_lines, 1)
+  end
+  suggestion_lines[1] = context_line .. suggestion_lines[1]
+
+  vim.notify("NOT YET IMPLEMENTED", vim.log.levels.WARN)
+end
+
 function M.accept_line()
   if #suggestion == 0 then
     return
