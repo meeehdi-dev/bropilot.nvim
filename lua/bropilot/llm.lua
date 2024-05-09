@@ -11,11 +11,8 @@ local context_line = ""
 local suggestion_progress_handle = nil
 local ready = false
 
----@alias Options {model: Model, tag: string, debounce: number}
+---@alias Options {model: Model, tag: string, debounce: number, auto_pull: boolean}
 ---@alias Model "codellama" | "codegemma" | "starcoder2"
-
----@type Options
-local opts = {}
 
 local M = {}
 
@@ -133,28 +130,40 @@ local function pull_model(model, cb)
         end
       end)
     end,
-    stream = function(err, data, s_job)
+    stream = function(err, data, p_job)
       async.util.scheduler(function()
-        if pull_job_pid ~= s_job.pid then
+        if pull_job_pid ~= p_job.pid then
           return
         end
         if err then
           vim.notify(err, vim.log.levels.ERROR)
         end
-        local body = vim.json.decode(data.body)
-        if pull_progress_handle ~= nil and body.status == "success" then
-          pull_progress_handle:finish()
-          pull_progress_handle = nil
+        local body = vim.json.decode(data)
+        if pull_progress_handle ~= nil then
+          if body.status == "success" then
+            pull_progress_handle:finish()
+            pull_progress_handle = nil
+            cb()
+          else
+            local report = {}
+            if body.status then
+              report.message = body.status
+            end
+            if body.completed ~= nil and body.total ~= nil then
+              report.percentage = body.completed / body.total * 100
+            end
+            pull_progress_handle:report(report)
+          end
         end
-        vim.notify("test: " .. body.status)
       end)
     end,
   })
   pull_job:start()
+  pull_job_pid = pull_job.pid
 end
 
 ---@param model_name string
-local function preload_model(model_name)
+local function preload_model(model_name, cb)
   local preload_progress_handle =
     util.get_progress_handle("Preloading " .. model_name)
   local preload_job = curl.post("http://localhost:11434/api/generate", {
@@ -169,6 +178,7 @@ local function preload_model(model_name)
           preload_progress_handle = nil
         end
         ready = true
+        cb()
       end)
     end,
   })
@@ -176,17 +186,20 @@ local function preload_model(model_name)
 end
 
 ---@param init_options Options
-function M.init(init_options)
-  opts = init_options
-  local model_name = util.join({ opts.model, opts.tag }, ":")
+function M.init(init_options, cb)
+  M.opts = init_options
+  local model_name = util.join({ M.opts.model, M.opts.tag }, ":")
   check_model(model_name, function(found)
     if found then
       preload_model(model_name)
     else
-      vim.notify("Model " .. model_name .. " not found", vim.log.levels.ERROR)
-      pull_model(model_name, function()
-        vim.notify("test")
-      end)
+      if M.opts.auto_pull then
+        pull_model(model_name, function()
+          preload_model(model_name, cb)
+        end)
+      else
+        vim.notify("Model " .. model_name .. " not found", vim.log.levels.ERROR)
+      end
     end
   end)
 end
@@ -281,7 +294,7 @@ function M.suggest(model, tag, current_line)
 
   local debounce_job = Job:new({
     command = "sleep",
-    args = { tostring(opts.debounce / 1000) },
+    args = { tostring(M.opts.debounce / 1000) },
     on_exit = function(d_job)
       async.util.scheduler(function()
         if debounce_job_pid ~= d_job.pid then

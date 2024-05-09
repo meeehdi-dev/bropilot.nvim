@@ -8,6 +8,7 @@ M.opts = {
   model = "codellama",
   tag = "7b-code",
   debounce = 100,
+  auto_pull = true,
 }
 
 vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
