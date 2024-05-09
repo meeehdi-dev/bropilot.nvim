@@ -110,19 +110,19 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
 - [ ] improve init
 - [ ] rewrite async handling and use callbacks to avoid timing problems
-- [ ] rejoin model & tag
+- [x] rejoin model & tag
 - [ ] fix: partial accept + newline => doesn't clear suggestion
 - [ ] fix: sometimes the pid is already killed
 - [ ] fix: notify non existent model
 - [x] some lua callbacks in async process, need to use scheduler (async util function)
 - [x] wait for model to be ready before trying to suggest (does ollama api provide that info? -> using preload)
-- [ ] check that suggestion is created after model finishes preload
+- [x] check that suggestion is created after model finishes preload
 - [ ] notify on ollama api errors
 - [x] keep subsequent suggestions in memory
 - [x] accepting block resets suggestions
 - [ ] custom init options
   - [x] model
-  - [x] tag
+  - [x] ~~tag~~
   - [ ] prompt (assert if unknown model)
   - [x] debounce time
   - [x] pull model if missing
