@@ -5,7 +5,6 @@ local util = require("bropilot.util")
 
 local debounce_job_pid = -1
 local suggestion_job_pid = -1
-local ready_job_pid = -1
 local suggestion = ""
 local context_line = ""
 local suggestion_progress_handle = nil
@@ -62,13 +61,6 @@ function M.cancel()
   if suggestion_job_pid ~= -1 then
     local kill = suggestion_job_pid
     suggestion_job_pid = -1
-    pcall(function()
-      io.popen("kill " .. kill)
-    end)
-  end
-  if ready_job_pid ~= -1 then
-    local kill = ready_job_pid
-    ready_job_pid = -1
     pcall(function()
       io.popen("kill " .. kill)
     end)
@@ -163,6 +155,7 @@ local function pull_model(model, cb)
 end
 
 ---@param model_name string
+---@param cb function | nil
 local function preload_model(model_name, cb)
   local preload_progress_handle =
     util.get_progress_handle("Preloading " .. model_name)
@@ -178,7 +171,9 @@ local function preload_model(model_name, cb)
           preload_progress_handle = nil
         end
         ready = true
-        cb()
+        if cb ~= nil then
+          cb()
+        end
       end)
     end,
   })
@@ -186,12 +181,13 @@ local function preload_model(model_name, cb)
 end
 
 ---@param init_options Options
+---@param cb function | nil
 function M.init(init_options, cb)
   M.opts = init_options
   local model_name = util.join({ M.opts.model, M.opts.tag }, ":")
   check_model(model_name, function(found)
     if found then
-      preload_model(model_name)
+      preload_model(model_name, cb)
     else
       if M.opts.auto_pull then
         pull_model(model_name, function()
@@ -212,9 +208,10 @@ function M.render_suggestion()
   end
 
   -- keep showing all suggestions but accept only block by block
-  -- local block = vim.split(suggestion, "\n\n")[1] -- only take first block when rendering
-  -- local suggestion_lines = vim.split(block, "\n")
-  local suggestion_lines = vim.split(suggestion, "\n")
+  local block = vim.split(suggestion, "\n\n")[1] -- only take first block when rendering
+  local suggestion_lines = vim.split(block, "\n")
+  -- FIXME: seems to not work anymore? weirdge
+  -- local suggestion_lines = vim.split(suggestion, "\n")
 
   if suggestion_lines[1] ~= "" then
     local row, col = util.get_cursor()
@@ -273,21 +270,9 @@ function M.suggest(model, tag, current_line)
   end
 
   if not ready then
-    M.cancel()
-    local ready_job = Job:new({
-      command = "sleep",
-      args = { 0.1 },
-      on_exit = function(r_job)
-        async.util.scheduler(function()
-          if ready_job_pid ~= r_job.pid then
-            return
-          end
-          ready_job_pid = -1
-          M.suggest(model, tag, current_line)
-        end)
-      end,
-    })
-    ready_job:start()
+    M.init(M.opts, function()
+      M.suggest(model, tag, current_line)
+    end)
     return
   end
   local prefix, suffix = util.get_context()
