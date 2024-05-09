@@ -28,15 +28,15 @@ systemctl status ollama
 
 Here is the default configuration.
 
-- `model` is a string enum ("codellama" | "codegemma" | "starcoder2").
-- `tag` is a string (e.g. "7b-code").
-- `debounce` is a number in milliseconds (e.g. "7b-code").
+- `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
+- `debounce` is a number in milliseconds
+- `auto_pull` is a boolean that allows bro to pull the model if not listed in ollama api
 
 ```lua
 require('bropilot').setup({
-  model = "codellama",
-  tag = "7b-code",
-  debounce = 100
+  model = "codellama:7b-code",
+  debounce = 100,
+  auto_pull = true,
 })
 ```
 
@@ -71,9 +71,9 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       -- "j-hui/fidget.nvim", -- optional
     },
     opts = {
-      model = "codellama",
-      tag = "7b-code",
-      debounce = 100,
+      model = "starcoder2:3b",
+      debounce = 500,
+      auto_pull = false,
     },
     config = function (_, opts)
         require("bropilot").setup(opts)
@@ -81,6 +81,13 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     keys = {
       {
         "<C-Right>",
+        function()
+          require("bropilot").accept_word()
+        end,
+        mode = "i",
+      },
+      {
+        "<M-Right>",
         function()
           require("bropilot").accept_line()
         end,
