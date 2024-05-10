@@ -9,6 +9,7 @@ local suggestion = ""
 local context_line = ""
 local suggestion_progress_handle = nil
 local ready = false
+local preparing = false
 
 ---@alias Options {model: string, debounce: number, auto_pull: boolean}
 
@@ -37,10 +38,7 @@ local get_prompt = function(model, prefix, suffix)
   local model_name = vim.split(model, ":")[1]
   local prompt_data = prompt_map[model_name]
   if prompt_data == nil then
-    vim.notify(
-      "No prompt found for " .. model,
-      vim.log.levels.ERROR
-    )
+    vim.notify("No prompt found for " .. model, vim.log.levels.ERROR)
     return ""
   end
   return prompt_data.prefix
@@ -180,17 +178,31 @@ local function preload_model(model, cb)
   preload_job:start()
 end
 
+local init_callback = nil
 ---@param init_options Options
 ---@param cb function | nil
 function M.init(init_options, cb)
+  init_callback = cb
+  if ready or preparing then
+    return
+  end
+  preparing = true
   M.opts = init_options
   check_model(M.opts.model, function(found)
     if found then
-      preload_model(M.opts.model, cb)
+      preload_model(M.opts.model, function()
+        if init_callback then
+          init_callback()
+        end
+      end)
     else
       if M.opts.auto_pull then
         pull_model(M.opts.model, function()
-          preload_model(M.opts.model, cb)
+          preload_model(M.opts.model, function()
+            if init_callback then
+              init_callback()
+            end
+          end)
         end)
       else
         vim.notify(M.opts.model .. " not found", vim.log.levels.ERROR)

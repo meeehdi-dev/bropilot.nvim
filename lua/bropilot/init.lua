@@ -10,10 +10,29 @@ M.opts = {
   auto_pull = true,
 }
 
-vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
+vim.api.nvim_create_autocmd({ "InsertEnter" }, {
   callback = function()
     local row = util.get_cursor()
     local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+    llm.suggest(M.opts.model, current_line)
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "CursorMovedI" }, {
+  callback = function()
+    llm.cancel()
+    llm.clear(true)
+
+    local row = util.get_cursor()
+    local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+    llm.suggest(M.opts.model, current_line)
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "TextChangedI" }, {
+  callback = function()
+    local row = util.get_cursor()
+    local current_line = util.get_lines(row - 1, row)[1]
     local context_line = llm.get_context_line()
 
     local current_suggestion = llm.get_suggestion()
