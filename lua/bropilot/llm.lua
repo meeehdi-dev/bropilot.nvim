@@ -169,6 +169,7 @@ local function preload_model(model, cb)
           preload_progress_handle = nil
         end
         ready = true
+        preparing = false
         if cb ~= nil then
           cb()
         end
@@ -270,21 +271,22 @@ local function on_data(data)
   M.render_suggestion()
 end
 
----@param model string
----@param current_line string
-function M.suggest(model, current_line)
-  local _, col = util.get_cursor()
+function M.suggest()
+  if not ready then
+    M.init(M.opts, function()
+      M.suggest()
+    end)
+    return
+  end
+
+  local row, col = util.get_cursor()
+  local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+
   if col < #current_line then
     -- TODO: trim but only trailing whitespace (not vim.trim()...)
     return -- cancel because cursor is before end of line
   end
 
-  if not ready then
-    M.init(M.opts, function()
-      M.suggest(model, current_line)
-    end)
-    return
-  end
   local prefix, suffix = util.get_context()
 
   local debounce_job = Job:new({
@@ -304,8 +306,8 @@ function M.suggest(model, current_line)
         local suggestion_job =
           curl.post("http://localhost:11434/api/generate", {
             body = vim.json.encode({
-              model = model,
-              prompt = get_prompt(model, prefix, suffix),
+              model = M.opts.model,
+              prompt = get_prompt(M.opts.model, prefix, suffix),
             }),
             callback = function()
               async.util.scheduler(function()

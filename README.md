@@ -46,7 +46,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
   {
     'meeehdi-dev/bropilot.nvim',
-    event = "InsertEnter",
+    event = "VeryLazy", -- preload model on start
     dependencies = {
       "nvim-lua/plenary.nvim",
       "j-hui/fidget.nvim", -- optional
@@ -65,7 +65,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   -- or
   {
     'meeehdi-dev/bropilot.nvim',
-    event = "InsertEnter",
+    event = "InsertEnter", -- preload model on insert start
     dependencies = {
       "nvim-lua/plenary.nvim",
       -- "j-hui/fidget.nvim", -- optional
@@ -115,7 +115,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] fix: accepting line resets suggestion
 - [x] fix: remove additional newlines at end of suggestion
 - [x] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
-- [ ] improve init
+- [x] improve init
 - [ ] rewrite async handling and use callbacks to avoid timing problems
 - [x] rejoin model & tag
 - [ ] fix: partial accept + newline => doesn't clear suggestion
