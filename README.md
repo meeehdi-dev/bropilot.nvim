@@ -72,6 +72,11 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     },
     opts = {
       model = "starcoder2:3b",
+      prompt = { -- FIM prompt for starcoder2
+        prefix = "<fim_prefix>",
+        suffix = "<fim_suffix>",
+        middle = "<fim_middle>",
+      },
       debounce = 500,
       auto_pull = false,
     },
@@ -130,7 +135,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [ ] custom init options
   - [x] model
   - [x] ~~tag~~
-  - [ ] prompt (assert if unknown model)
+  - [x] prompt (assert if unknown model)
   - [x] debounce time
   - [x] pull model if missing
   - [ ] show progress

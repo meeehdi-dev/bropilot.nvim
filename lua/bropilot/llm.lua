@@ -11,7 +11,7 @@ local suggestion_progress_handle = nil
 local ready = false
 local preparing = false
 
----@alias Options {model: string, debounce: number, auto_pull: boolean}
+---@alias Options {model: string, prompt: { prefix: string, suffix: string, middle: string }, debounce: number, auto_pull: boolean}
 
 local M = {}
 
@@ -307,7 +307,8 @@ function M.suggest()
           curl.post("http://localhost:11434/api/generate", {
             body = vim.json.encode({
               model = M.opts.model,
-              prompt = get_prompt(M.opts.model, prefix, suffix),
+              prompt = M.opts.prompt
+                or get_prompt(M.opts.model, prefix, suffix),
             }),
             callback = function()
               async.util.scheduler(function()
