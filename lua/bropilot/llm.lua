@@ -1,15 +1,14 @@
 local curl = require("plenary.curl")
-local Job = require("plenary.job")
 local async = require("plenary.async")
 local util = require("bropilot.util")
 
-local debounce_job_pid = -1
 local suggestion_job_pid = -1
 local suggestion = ""
 local context_line = ""
 local suggestion_progress_handle = nil
 local ready = false
 local preparing = false
+local debounce_suggest, cancel_debounce_suggest = util.debounce()
 
 ---@alias Options {model: string, prompt: { prefix: string, suffix: string, middle: string }, debounce: number, auto_pull: boolean}
 
@@ -49,13 +48,7 @@ local get_prompt = function(model, prefix, suffix)
 end
 
 function M.cancel()
-  if debounce_job_pid ~= -1 then
-    local kill = debounce_job_pid
-    debounce_job_pid = -1
-    pcall(function()
-      io.popen("kill " .. kill)
-    end)
-  end
+  cancel_debounce_suggest()
   if suggestion_job_pid ~= -1 then
     local kill = suggestion_job_pid
     suggestion_job_pid = -1
@@ -189,6 +182,7 @@ function M.init(init_options, cb)
   end
   preparing = true
   M.opts = init_options
+  debounce_suggest, cancel_debounce_suggest = util.debounce(M.opts.debounce)
   check_model(M.opts.model, function(found)
     if found then
       preload_model(M.opts.model, function()
@@ -289,54 +283,39 @@ function M.suggest()
 
   local prefix, suffix = util.get_context()
 
-  local debounce_job = Job:new({
-    command = "sleep",
-    args = { tostring(M.opts.debounce / 1000) },
-    on_exit = function(d_job)
-      async.util.scheduler(function()
-        if debounce_job_pid ~= d_job.pid then
-          return
-        end
-        debounce_job_pid = -1
-
-        context_line = current_line
-        if suggestion_progress_handle == nil then
-          suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-        end
-        local suggestion_job =
-          curl.post("http://localhost:11434/api/generate", {
-            body = vim.json.encode({
-              model = M.opts.model,
-              prompt = M.opts.prompt
-                or get_prompt(M.opts.model, prefix, suffix),
-            }),
-            callback = function()
-              async.util.scheduler(function()
-                suggestion_job_pid = -1
-                if suggestion_progress_handle ~= nil then
-                  suggestion_progress_handle:cancel()
-                  suggestion_progress_handle = nil
-                end
-              end)
-            end,
-            stream = function(err, data, s_job)
-              async.util.scheduler(function()
-                if suggestion_job_pid ~= s_job.pid then
-                  return
-                end
-                if err then
-                  vim.notify(err, vim.log.levels.ERROR)
-                end
-                on_data(data)
-              end)
-            end,
-          })
-        suggestion_job_pid = suggestion_job.pid
-      end)
-    end,
-  })
-  debounce_job:start()
-  debounce_job_pid = debounce_job.pid
+  debounce_suggest(function()
+    context_line = current_line
+    if suggestion_progress_handle == nil then
+      suggestion_progress_handle = util.get_progress_handle("Suggesting...")
+    end
+    local suggestion_job = curl.post("http://localhost:11434/api/generate", {
+      body = vim.json.encode({
+        model = M.opts.model,
+        prompt = M.opts.prompt or get_prompt(M.opts.model, prefix, suffix),
+      }),
+      callback = function()
+        async.util.scheduler(function()
+          suggestion_job_pid = -1
+          if suggestion_progress_handle ~= nil then
+            suggestion_progress_handle:cancel()
+            suggestion_progress_handle = nil
+          end
+        end)
+      end,
+      stream = function(err, data, s_job)
+        async.util.scheduler(function()
+          if suggestion_job_pid ~= s_job.pid then
+            return
+          end
+          if err then
+            vim.notify(err, vim.log.levels.ERROR)
+          end
+          on_data(data)
+        end)
+      end,
+    })
+    suggestion_job_pid = suggestion_job.pid
+  end)
 end
 
 ---@return string
