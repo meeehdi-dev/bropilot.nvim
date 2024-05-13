@@ -1,4 +1,5 @@
 local has_progress, progress = pcall(require, "fidget.progress")
+local async = require("plenary.async")
 
 local M = {}
 
@@ -72,7 +73,7 @@ function M.render_virtual_text(lines)
     local virt_lines = {}
     for k, v in ipairs(lines) do
       if k > 1 then -- skip first line
-        virt_lines[k - 1] = { { v, "Comment" } }
+        table.insert(virt_lines, { { v, "Comment" } })
       end
     end
     extmark_opts.virt_lines = virt_lines
@@ -87,6 +88,26 @@ function M.clear_virtual_text()
   if extmark_id ~= -1 then
     vim.api.nvim_buf_del_extmark(0, ns_id, extmark_id)
     extmark_id = -1
+  end
+end
+
+---@param timeout number | nil
+function M.debounce(timeout)
+  local callback = nil
+  local timer = vim.uv.new_timer()
+  return function(cb)
+    callback = cb
+    timer:stop()
+    timer:start(timeout or 0, 0, function()
+      timer:stop()
+      if callback then
+        async.util.scheduler(function()
+          callback()
+        end)
+      end
+    end)
+  end, function()
+    timer:stop()
   end
 end
 

@@ -5,24 +5,42 @@ local M = {}
 
 ---@type Options
 M.opts = {
-  model = "codellama",
-  variant = "7b-code",
+  model = "codellama:7b-code",
   debounce = 100,
+  auto_pull = true,
 }
 
-vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
+vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+  callback = function()
+    llm.suggest()
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "CursorMovedI" }, {
+  callback = function()
+    llm.cancel()
+    llm.clear(true)
+
+    llm.suggest()
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "TextChangedI" }, {
   callback = function()
     local row = util.get_cursor()
-    local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+    local current_line = util.get_lines(row - 1, row)[1]
     local context_line = llm.get_context_line()
 
     local current_suggestion = llm.get_suggestion()
     local suggestion_lines = vim.split(current_suggestion, "\n")
 
     -- FIXME: can possibly be simplified
-    local has_suggestion = #current_suggestion > 0 and #suggestion_lines > 0
+    local has_suggestion = current_suggestion ~= "" and #suggestion_lines > 0
     local partially_accepted_suggestion = has_suggestion
       and context_line == ""
+      and suggestion_lines[1] == ""
+    -- TODO: handle partial block accept but this feels wrong...
+    local partially_accepted_block = partially_accepted_suggestion
       and suggestion_lines[1] == ""
     local context_contains_suggestion = has_suggestion
       and context_line ~= ""
@@ -40,7 +58,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
     llm.cancel()
     llm.clear(true)
 
-    llm.suggest(M.opts.model, M.opts.variant, current_line)
+    llm.suggest()
   end,
 })
 
@@ -55,6 +73,7 @@ M.accept_word = llm.accept_word
 M.accept_line = llm.accept_line
 M.accept_block = llm.accept_block
 
+---@param opts Options
 function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 

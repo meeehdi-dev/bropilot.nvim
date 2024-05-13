@@ -28,15 +28,15 @@ systemctl status ollama
 
 Here is the default configuration.
 
-- `model` is a string enum ("codellama" | "codegemma" | "starcoder2").
-- `variant` is a string (e.g. "7b-code").
-- `debounce` is a number in milliseconds (e.g. "7b-code").
+- `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
+- `debounce` is a number in milliseconds
+- `auto_pull` is a boolean that allows bro to pull the model if not listed in ollama api
 
 ```lua
 require('bropilot').setup({
-  model = "codellama",
-  variant = "7b-code",
-  debounce = 100
+  model = "codellama:7b-code",
+  debounce = 100,
+  auto_pull = true,
 })
 ```
 
@@ -46,7 +46,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 ```lua
   {
     'meeehdi-dev/bropilot.nvim',
-    event = "InsertEnter",
+    event = "VeryLazy", -- preload model on start
     dependencies = {
       "nvim-lua/plenary.nvim",
       "j-hui/fidget.nvim", -- optional
@@ -65,15 +65,20 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   -- or
   {
     'meeehdi-dev/bropilot.nvim',
-    event = "InsertEnter",
+    event = "InsertEnter", -- preload model on insert start
     dependencies = {
       "nvim-lua/plenary.nvim",
       -- "j-hui/fidget.nvim", -- optional
     },
     opts = {
-      model = "codellama",
-      variant = "7b-code",
-      debounce = 100,
+      model = "starcoder2:3b",
+      prompt = { -- FIM prompt for starcoder2
+        prefix = "<fim_prefix>",
+        suffix = "<fim_suffix>",
+        middle = "<fim_middle>",
+      },
+      debounce = 500,
+      auto_pull = false,
     },
     config = function (_, opts)
         require("bropilot").setup(opts)
@@ -113,28 +118,33 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] progress while suggesting
 - [x] cleanup current code
 - [x] skip suggestion if text after cursor (except if just moving?)
-- [ ] fix: accepting line resets suggestion
-- [ ] fix: remove additional newlines at end of suggestion
+- [x] fix: accepting line resets suggestion
+- [x] fix: remove additional newlines at end of suggestion
 - [x] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
+- [x] improve init
+- [x] rewrite async handling and use callbacks to avoid timing problems
+- [x] rejoin model & tag
 - [ ] fix: partial accept + newline => doesn't clear suggestion
-- [ ] fix: sometimes the pid is already killed => TODO: improve all async processes handling
-- [ ] some lua callbacks in async process, need to use scheduler (util function?)
+- [x] fix: sometimes the pid is already killed
+- [ ] fix: notify non existent model
+- [x] some lua callbacks in async process, need to use scheduler (async util function)
 - [x] wait for model to be ready before trying to suggest (does ollama api provide that info? -> using preload)
-- [ ] check that suggestion is created after model ready
+- [x] check that suggestion is created after model finishes preload
 - [ ] notify on ollama api errors
 - [x] keep subsequent suggestions in memory
-- [ ] accepting block resets suggestions
+- [x] accepting block resets suggestions
 - [ ] custom init options
   - [x] model
-  - [x] variant
-  - [ ] prompt (assert if unknown model)
+  - [x] ~~tag~~
+  - [x] prompt (assert if unknown model)
   - [x] debounce time
-  - [ ] show progress
-  - [ ] keep all current suggestions in memory
+  - [x] pull model if missing
+  - [x] show progress
+  - [ ] keep all current suggestions in memory (option to keep only n blocks)
   - [ ] ollama params
-- [ ] check if model is listed in ollama api
-- [ ] pull model if not listed (behind option)
-- [ ] replace unix sleep with async job
+- [x] check if model is listed in ollama api
+- [x] pull model if not listed (behind option)
+- [x] replace unix sleep with async job
 - [ ] accept word
 - [ ] commands (might need additional model -instruct?-)
   - [ ] describe
