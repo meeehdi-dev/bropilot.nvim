@@ -2,13 +2,19 @@ local curl = require("plenary.curl")
 local async = require("plenary.async")
 local util = require("bropilot.util")
 
+---@type number
 local suggestion_job_pid = -1
+---@type string
 local suggestion = ""
+---@type string
 local context_line = ""
 local suggestion_progress_handle = nil
+---@type boolean
 local ready = false
+---@type boolean
 local preparing = false
-local debounce_suggest, cancel_debounce_suggest = util.debounce()
+---@type number
+local debounce_timer_id = -1
 
 ---@alias Options {model: string, prompt: { prefix: string, suffix: string, middle: string }, debounce: number, auto_pull: boolean}
 
@@ -47,8 +53,102 @@ local get_prompt = function(model, prefix, suffix)
     .. prompt_data.middle
 end
 
+---@param data string
+local function on_data(data)
+  local body = vim.json.decode(data)
+  if body.done then
+    suggestion_job_pid = -1
+    if suggestion_progress_handle ~= nil then
+      suggestion_progress_handle:finish()
+      suggestion_progress_handle = nil
+    end
+    return
+  end
+
+  suggestion = suggestion .. (body.response or "")
+
+  M.clear()
+
+  local eot_placeholder = "<EOT>"
+  local _, eot = string.find(suggestion, eot_placeholder)
+  if eot then
+    M.cancel()
+    suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
+  end
+  -- TODO: use in option (default should be true, bc suggestions can be long af)
+  -- local block_placeholder = "\n\n"
+  -- local _, block = string.find(suggestion, block_placeholder)
+  -- if block then
+  --   M.cancel()
+  --   suggestion = string.sub(suggestion, 0, block - #block_placeholder)
+  -- end
+
+  M.render_suggestion()
+end
+
+---@param timer_id number
+local function do_suggest(timer_id)
+  if timer_id ~= debounce_timer_id then
+    return
+  end
+
+  local row, col = util.get_cursor()
+  local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+
+  if col < #current_line then
+    -- TODO: trim but only trailing whitespace (not vim.trim()...)
+    return -- cancel because cursor is before end of line
+  end
+
+  local prefix, suffix = util.get_context()
+
+  context_line = current_line
+  if suggestion_progress_handle == nil then
+    suggestion_progress_handle = util.get_progress_handle("Suggesting...")
+  end
+  local suggestion_job = curl.post("http://localhost:11434/api/generate", {
+    body = vim.json.encode({
+      model = M.opts.model,
+      prompt = M.opts.prompt or get_prompt(M.opts.model, prefix, suffix),
+    }),
+    callback = function()
+      async.util.scheduler(function()
+        suggestion_job_pid = -1
+        if suggestion_progress_handle ~= nil then
+          suggestion_progress_handle:cancel()
+          suggestion_progress_handle = nil
+        end
+      end)
+    end,
+    stream = function(err, data, s_job)
+      async.util.scheduler(function()
+        if suggestion_job_pid ~= s_job.pid then
+          return
+        end
+        if err then
+          vim.notify(err, vim.log.levels.ERROR)
+        end
+        on_data(data)
+      end)
+    end,
+  })
+  suggestion_job_pid = suggestion_job.pid
+end
+
+local function debounce()
+  if not M.opts or not M.opts.debounce then
+    return
+  end
+  debounce_timer_id = vim.fn.timer_start(M.opts.debounce, function(timer_id)
+    do_suggest(timer_id)
+  end)
+end
+
 function M.cancel()
-  cancel_debounce_suggest()
+  if debounce_timer_id then
+    vim.fn.timer_stop(debounce_timer_id)
+    debounce_timer_id = -1
+  end
   if suggestion_job_pid ~= -1 then
     local kill = suggestion_job_pid
     suggestion_job_pid = -1
@@ -182,7 +282,6 @@ function M.init(init_options, cb)
   end
   preparing = true
   M.opts = init_options
-  debounce_suggest, cancel_debounce_suggest = util.debounce(M.opts.debounce)
   check_model(M.opts.model, function(found)
     if found then
       preload_model(M.opts.model, function()
@@ -232,39 +331,6 @@ function M.render_suggestion()
   util.render_virtual_text(suggestion_lines)
 end
 
----@param data string
-local function on_data(data)
-  local body = vim.json.decode(data)
-  if body.done then
-    suggestion_job_pid = -1
-    if suggestion_progress_handle ~= nil then
-      suggestion_progress_handle:finish()
-      suggestion_progress_handle = nil
-    end
-    return
-  end
-
-  suggestion = suggestion .. (body.response or "")
-
-  M.clear()
-
-  local eot_placeholder = "<EOT>"
-  local _, eot = string.find(suggestion, eot_placeholder)
-  if eot then
-    M.cancel()
-    suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
-  end
-  -- TODO: use in option (default should be true, bc suggestions can be long af)
-  -- local block_placeholder = "\n\n"
-  -- local _, block = string.find(suggestion, block_placeholder)
-  -- if block then
-  --   M.cancel()
-  --   suggestion = string.sub(suggestion, 0, block - #block_placeholder)
-  -- end
-
-  M.render_suggestion()
-end
-
 function M.suggest()
   if not ready then
     M.init(M.opts, function()
@@ -273,49 +339,7 @@ function M.suggest()
     return
   end
 
-  local row, col = util.get_cursor()
-  local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
-
-  if col < #current_line then
-    -- TODO: trim but only trailing whitespace (not vim.trim()...)
-    return -- cancel because cursor is before end of line
-  end
-
-  local prefix, suffix = util.get_context()
-
-  debounce_suggest(function()
-    context_line = current_line
-    if suggestion_progress_handle == nil then
-      suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-    end
-    local suggestion_job = curl.post("http://localhost:11434/api/generate", {
-      body = vim.json.encode({
-        model = M.opts.model,
-        prompt = M.opts.prompt or get_prompt(M.opts.model, prefix, suffix),
-      }),
-      callback = function()
-        async.util.scheduler(function()
-          suggestion_job_pid = -1
-          if suggestion_progress_handle ~= nil then
-            suggestion_progress_handle:cancel()
-            suggestion_progress_handle = nil
-          end
-        end)
-      end,
-      stream = function(err, data, s_job)
-        async.util.scheduler(function()
-          if suggestion_job_pid ~= s_job.pid then
-            return
-          end
-          if err then
-            vim.notify(err, vim.log.levels.ERROR)
-          end
-          on_data(data)
-        end)
-      end,
-    })
-    suggestion_job_pid = suggestion_job.pid
-  end)
+  debounce()
 end
 
 ---@return string

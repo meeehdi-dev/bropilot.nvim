@@ -91,24 +91,4 @@ function M.clear_virtual_text()
   end
 end
 
----@param timeout number | nil
-function M.debounce(timeout)
-  local callback = nil
-  local timer = vim.uv.new_timer()
-  return function(cb)
-    callback = cb
-    timer:stop()
-    timer:start(timeout or 0, 0, function()
-      timer:stop()
-      if callback then
-        async.util.scheduler(function()
-          callback()
-        end)
-      end
-    end)
-  end, function()
-    timer:stop()
-  end
-end
-
 return M

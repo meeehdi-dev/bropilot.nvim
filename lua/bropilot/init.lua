@@ -6,7 +6,7 @@ local M = {}
 ---@type Options
 M.opts = {
   model = "codellama:7b-code",
-  debounce = 100,
+  debounce = 1000,
   auto_pull = true,
 }
 
