@@ -20,37 +20,15 @@ local debounce_timer_id = -1
 
 local M = {}
 
----@type table<string, {prefix: string, suffix: string, middle: string}>
-local prompt_map = {
-  codellama = { prefix = "<PRE> ", suffix = " <SUF>", middle = " <MID>" },
-  codegemma = {
-    prefix = "<|fim_prefix|>",
-    suffix = "<|fim_suffix|>",
-    middle = "<|fim_middle|>",
-  },
-  starcoder2 = {
-    prefix = "<fim_prefix>",
-    suffix = "<fim_suffix>",
-    middle = "<fim_middle>",
-  },
-}
-
----@param model string
 ---@param prefix string
 ---@param suffix string
 ---@return string
-local get_prompt = function(model, prefix, suffix)
-  local model_name = vim.split(model, ":")[1]
-  local prompt_data = prompt_map[model_name]
-  if prompt_data == nil then
-    vim.notify("No prompt found for " .. model, vim.log.levels.ERROR)
-    return ""
-  end
-  return prompt_data.prefix
+local get_prompt = function(prefix, suffix)
+  return M.opts.prompt.prefix
     .. prefix
-    .. prompt_data.suffix
+    .. M.opts.prompt.suffix
     .. suffix
-    .. prompt_data.middle
+    .. M.opts.prompt.middle
 end
 
 ---@param data string
@@ -109,7 +87,7 @@ local function do_suggest(timer_id)
   local suggestion_job = curl.post("http://localhost:11434/api/generate", {
     body = vim.json.encode({
       model = M.opts.model,
-      prompt = M.opts.prompt or get_prompt(M.opts.model, prefix, suffix),
+      prompt = get_prompt(prefix, suffix),
     }),
     callback = function()
       async.util.scheduler(function()
@@ -136,9 +114,6 @@ local function do_suggest(timer_id)
 end
 
 local function debounce()
-  if not M.opts or not M.opts.debounce then
-    return
-  end
   debounce_timer_id = vim.fn.timer_start(M.opts.debounce, function(timer_id)
     do_suggest(timer_id)
   end)

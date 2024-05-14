@@ -29,13 +29,19 @@ systemctl status ollama
 Here is the default configuration.
 
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
+- `prompt` is an object defining the prefix, suffix and middle keywords for FIM
 - `debounce` is a number in milliseconds
 - `auto_pull` is a boolean that allows bro to pull the model if not listed in ollama api
 
 ```lua
 require('bropilot').setup({
   model = "codellama:7b-code",
-  debounce = 100,
+  prompt = { -- FIM prompt for codellama
+    prefix = "<PRE>",
+    suffix = "<SUF>",
+    middle = "<MID>",
+  },
+  debounce = 1000,
   auto_pull = true,
 })
 ```
