@@ -24,7 +24,6 @@ local M = {}
 ---@param suffix string
 ---@return string
 local get_prompt = function(prefix, suffix)
-  vim.notify(M.opts.prompt.prefix)
   return M.opts.prompt.prefix
     .. prefix
     .. M.opts.prompt.suffix
