@@ -13,8 +13,8 @@ local suggestion_progress_handle = nil
 local ready = false
 ---@type boolean
 local preparing = false
----@type number
-local debounce_timer_id = -1
+---@type uv_timer_t | nil
+local debounce_timer = nil
 
 ---@alias Options {model: string, prompt: { prefix: string, suffix: string, middle: string }, debounce: number, auto_pull: boolean}
 
@@ -24,6 +24,7 @@ local M = {}
 ---@param suffix string
 ---@return string
 local get_prompt = function(prefix, suffix)
+  vim.notify(M.opts.prompt.prefix)
   return M.opts.prompt.prefix
     .. prefix
     .. M.opts.prompt.suffix
@@ -64,9 +65,9 @@ local function on_data(data)
   M.render_suggestion()
 end
 
----@param timer_id number
-local function do_suggest(timer_id)
-  if timer_id ~= debounce_timer_id then
+---@param timer uv_timer_t
+local function do_suggest(timer)
+  if timer ~= debounce_timer then
     return
   end
 
@@ -114,15 +115,25 @@ local function do_suggest(timer_id)
 end
 
 local function debounce()
-  debounce_timer_id = vim.fn.timer_start(M.opts.debounce, function(timer_id)
-    do_suggest(timer_id)
-  end)
+  local timer = vim.uv.new_timer()
+  if
+    timer:start(
+      M.opts.debounce,
+      0,
+      vim.schedule_wrap(function()
+        do_suggest(timer)
+      end)
+    ) == 0
+  then
+    debounce_timer = timer
+  end
 end
 
 function M.cancel()
-  if debounce_timer_id then
-    vim.fn.timer_stop(debounce_timer_id)
-    debounce_timer_id = -1
+  if debounce_timer then
+    debounce_timer:stop()
+    debounce_timer:close()
+    debounce_timer = nil
   end
   if suggestion_job_pid ~= -1 then
     local kill = suggestion_job_pid
