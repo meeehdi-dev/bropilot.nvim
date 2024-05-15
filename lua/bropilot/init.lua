@@ -5,11 +5,11 @@ local M = {}
 
 ---@type Options
 M.opts = {
-  model = "codellama:7b-code",
+  model = "codegemma:2b-code",
   prompt = {
-    prefix = "<PRE> ",
-    suffix = " <SUF>",
-    middle = " <MID>",
+    prefix = "<|fim_prefix|>",
+    suffix = "<|fim_suffix|>",
+    middle = "<|fim_middle|>",
   },
   debounce = 1000,
   auto_pull = true,

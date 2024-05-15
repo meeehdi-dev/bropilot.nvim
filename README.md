@@ -35,11 +35,11 @@ Here is the default configuration.
 
 ```lua
 require('bropilot').setup({
-  model = "codellama:7b-code",
-  prompt = { -- FIM prompt for codellama
-    prefix = "<PRE>",
-    suffix = "<SUF>",
-    middle = "<MID>",
+  model = "codegemma:2b-code",
+  prompt = { -- FIM prompt for codegemma
+    prefix = "<|fim_prefix|>",
+    suffix = "<|fim_suffix|>",
+    middle = "<|fim_middle|>",
   },
   debounce = 1000,
   auto_pull = true,

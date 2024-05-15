@@ -182,8 +182,34 @@ local function check_model(model, cb)
 end
 
 ---@param model string
----@param cb function
-local function pull_model(model, cb)
+local function preload_model(model)
+  local preload_progress_handle =
+    util.get_progress_handle("Preloading " .. model)
+  local preload_job = curl.post("http://localhost:11434/api/generate", {
+    body = vim.json.encode({
+      model = model,
+      keep_alive = "10m",
+    }),
+    callback = function()
+      async.util.scheduler(function()
+        if preload_progress_handle ~= nil then
+          preload_progress_handle:finish()
+          preload_progress_handle = nil
+        end
+        ready = true
+        preparing = false
+        local mode = vim.fn.mode()
+        if mode == "i" or mode == "r" then
+          M.suggest()
+        end
+      end)
+    end,
+  })
+  preload_job:start()
+end
+
+---@param model string
+local function pull_model(model)
   local pull_progress_handle =
     util.get_progress_handle("Pulling model " .. model)
   local pull_job_pid = -1
@@ -211,7 +237,7 @@ local function pull_model(model, cb)
           if body.status == "success" then
             pull_progress_handle:finish()
             pull_progress_handle = nil
-            cb()
+            preload_model(model)
           else
             local report = {}
             if body.status then
@@ -230,38 +256,8 @@ local function pull_model(model, cb)
   pull_job_pid = pull_job.pid
 end
 
----@param model string
----@param cb function | nil
-local function preload_model(model, cb)
-  local preload_progress_handle =
-    util.get_progress_handle("Preloading " .. model)
-  local preload_job = curl.post("http://localhost:11434/api/generate", {
-    body = vim.json.encode({
-      model = model,
-      keep_alive = "10m",
-    }),
-    callback = function()
-      async.util.scheduler(function()
-        if preload_progress_handle ~= nil then
-          preload_progress_handle:finish()
-          preload_progress_handle = nil
-        end
-        ready = true
-        preparing = false
-        if cb ~= nil then
-          cb()
-        end
-      end)
-    end,
-  })
-  preload_job:start()
-end
-
-local init_callback = nil
 ---@param init_options Options
----@param cb function | nil
-function M.init(init_options, cb)
-  init_callback = cb
+function M.init(init_options)
   if ready or preparing then
     return
   end
@@ -269,20 +265,10 @@ function M.init(init_options, cb)
   M.opts = init_options
   check_model(M.opts.model, function(found)
     if found then
-      preload_model(M.opts.model, function()
-        if init_callback then
-          init_callback()
-        end
-      end)
+      preload_model(M.opts.model)
     else
       if M.opts.auto_pull then
-        pull_model(M.opts.model, function()
-          preload_model(M.opts.model, function()
-            if init_callback then
-              init_callback()
-            end
-          end)
-        end)
+        pull_model(M.opts.model)
       else
         vim.notify(M.opts.model .. " not found", vim.log.levels.ERROR)
       end
@@ -318,9 +304,7 @@ end
 
 function M.suggest()
   if not ready then
-    M.init(M.opts, function()
-      M.suggest()
-    end)
+    M.init(M.opts)
     return
   end
 
