@@ -24,7 +24,7 @@ vim.api.nvim_create_autocmd({ "InsertEnter" }, {
 vim.api.nvim_create_autocmd({ "CursorMovedI" }, {
   callback = function()
     llm.cancel()
-    llm.clear(true)
+    llm.clear()
 
     llm.suggest()
   end,
@@ -61,7 +61,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI" }, {
     end
 
     llm.cancel()
-    llm.clear(true)
+    llm.clear()
 
     llm.suggest()
   end,
@@ -70,7 +70,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI" }, {
 vim.api.nvim_create_autocmd({ "InsertLeave" }, {
   callback = function()
     llm.cancel()
-    llm.clear(true)
+    llm.clear()
   end,
 })
 

@@ -139,6 +139,8 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [ ] notify on ollama api errors
 - [x] keep subsequent suggestions in memory
 - [x] accepting block resets suggestions
+- [ ] refactor everything (wip)
+- [ ] fix: keep same suggestion when partially accepting
 - [ ] custom init options
   - [x] model
   - [x] ~~tag~~

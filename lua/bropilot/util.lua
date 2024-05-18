@@ -1,5 +1,4 @@
 local has_progress, progress = pcall(require, "fidget.progress")
-local async = require("plenary.async")
 
 local M = {}
 
@@ -60,6 +59,8 @@ local ns_id = vim.api.nvim_create_namespace("bropilot")
 local extmark_id = -1
 ---@param lines string[]
 function M.render_virtual_text(lines)
+  M.clear_virtual_text()
+
   if #lines == 0 then
     return
   end

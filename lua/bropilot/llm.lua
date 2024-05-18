@@ -45,8 +45,6 @@ local function on_data(data)
 
   suggestion = suggestion .. (body.response or "")
 
-  M.clear()
-
   local eot_placeholder = "<EOT>"
   local _, eot = string.find(suggestion, eot_placeholder)
   if eot then
@@ -147,11 +145,8 @@ function M.cancel()
   end
 end
 
----@param force boolean | nil
-function M.clear(force)
-  if force then
-    suggestion = ""
-  end
+function M.clear()
+  suggestion = ""
   util.clear_virtual_text()
 end
 
@@ -182,7 +177,8 @@ local function check_model(model, cb)
 end
 
 ---@param model string
-local function preload_model(model)
+---@param cb function
+local function preload_model(model, cb)
   local preload_progress_handle =
     util.get_progress_handle("Preloading " .. model)
   local preload_job = curl.post("http://localhost:11434/api/generate", {
@@ -198,10 +194,7 @@ local function preload_model(model)
         end
         ready = true
         preparing = false
-        local mode = vim.fn.mode()
-        if mode == "i" or mode == "r" then
-          M.suggest()
-        end
+        cb()
       end)
     end,
   })
@@ -209,7 +202,8 @@ local function preload_model(model)
 end
 
 ---@param model string
-local function pull_model(model)
+---@param cb function
+local function pull_model(model, cb)
   local pull_progress_handle =
     util.get_progress_handle("Pulling model " .. model)
   local pull_job_pid = -1
@@ -237,7 +231,7 @@ local function pull_model(model)
           if body.status == "success" then
             pull_progress_handle:finish()
             pull_progress_handle = nil
-            preload_model(model)
+            cb()
           else
             local report = {}
             if body.status then
@@ -265,10 +259,16 @@ function M.init(init_options)
   M.opts = init_options
   check_model(M.opts.model, function(found)
     if found then
-      preload_model(M.opts.model)
+      preload_model(M.opts.model, function()
+        M.suggest()
+      end)
     else
       if M.opts.auto_pull then
-        pull_model(M.opts.model)
+        pull_model(M.opts.model, function()
+          preload_model(M.opts.model, function()
+            M.suggest()
+          end)
+        end)
       else
         vim.notify(M.opts.model .. " not found", vim.log.levels.ERROR)
       end
@@ -277,9 +277,8 @@ function M.init(init_options)
 end
 
 function M.render_suggestion()
-  M.clear()
-
   if suggestion == "" then
+    util.clear_virtual_text()
     return
   end
 
