@@ -13,6 +13,8 @@ local suggestion_progress_handle = nil
 local ready = false
 ---@type boolean
 local preparing = false
+---@type boolean
+local suggesting = false
 ---@type uv_timer_t | nil
 local debounce_timer = nil
 
@@ -64,6 +66,10 @@ end
 
 ---@param timer uv_timer_t
 local function do_suggest(timer)
+  if not suggesting then
+    return
+  end
+
   if timer ~= debounce_timer then
     return
   end
@@ -127,6 +133,7 @@ local function debounce()
 end
 
 function M.cancel()
+  suggesting = false
   if debounce_timer then
     debounce_timer:stop()
     debounce_timer:close()
@@ -251,7 +258,8 @@ local function pull_model(model, cb)
 end
 
 ---@param init_options Options
-function M.init(init_options)
+---@param cb function
+function M.init(init_options, cb)
   if ready or preparing then
     return
   end
@@ -259,15 +267,11 @@ function M.init(init_options)
   M.opts = init_options
   check_model(M.opts.model, function(found)
     if found then
-      preload_model(M.opts.model, function()
-        M.suggest()
-      end)
+      preload_model(M.opts.model, cb)
     else
       if M.opts.auto_pull then
         pull_model(M.opts.model, function()
-          preload_model(M.opts.model, function()
-            M.suggest()
-          end)
+          preload_model(M.opts.model, cb)
         end)
       else
         vim.notify(M.opts.model .. " not found", vim.log.levels.ERROR)
@@ -303,9 +307,10 @@ end
 
 function M.suggest()
   if not ready then
-    M.init(M.opts)
+    M.init(M.opts, M.suggest)
     return
   end
+  suggesting = true
 
   debounce()
 end

@@ -51,7 +51,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI" }, {
       and context_line ~= ""
       and #current_line >= #context_line
       and string.find(
-        context_line .. suggestion_lines[1],
+        vim.pesc(context_line .. suggestion_lines[1]),
         vim.pesc(current_line)
       )
 
@@ -83,7 +83,7 @@ function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 
   -- setup options (model, prompt, keep_alive, params, etc...)
-  llm.init(M.opts)
+  llm.init(M.opts, llm.suggest)
 end
 
 return M
