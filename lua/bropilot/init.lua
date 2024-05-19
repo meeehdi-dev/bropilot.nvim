@@ -83,7 +83,7 @@ function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 
   -- setup options (model, prompt, keep_alive, params, etc...)
-  llm.init(M.opts, llm.suggest)
+  llm.init(M.opts, llm.suggest) -- FIXME: llm.suggest should prolly be called separately only if in insert mode depending on lazy setup
 end
 
 return M
