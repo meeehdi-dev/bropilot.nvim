@@ -2,8 +2,8 @@ local curl = require("plenary.curl")
 local async = require("plenary.async")
 local util = require("bropilot.util")
 
----@type number
-local suggestion_job_pid = -1
+---@type job | nil
+local suggestion_job = nil
 ---@type string
 local suggestion = ""
 ---@type string
@@ -12,7 +12,7 @@ local suggestion_progress_handle = nil
 ---@type boolean
 local ready = false
 ---@type boolean
-local preparing = false
+local initializing = false
 ---@type boolean
 local suggesting = false
 ---@type uv_timer_t | nil
@@ -35,14 +35,12 @@ end
 
 ---@param data string
 local function on_data(data)
+  if data == nil then
+    return
+  end
   local body = vim.json.decode(data)
   if body.done then
-    suggestion_job_pid = -1
-    if suggestion_progress_handle ~= nil then
-      suggestion_progress_handle:finish()
-      suggestion_progress_handle = nil
-    end
-    return
+    util.finish_progress(suggestion_progress_handle)
   end
 
   suggestion = suggestion .. (body.response or "")
@@ -88,25 +86,16 @@ local function do_suggest(timer)
   if suggestion_progress_handle == nil then
     suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   end
-  local suggestion_job = curl.post("http://localhost:11434/api/generate", {
+  suggestion_job = curl.post("http://localhost:11434/api/generate", {
     body = vim.json.encode({
       model = M.opts.model,
       prompt = get_prompt(prefix, suffix),
     }),
     callback = function()
-      async.util.scheduler(function()
-        suggestion_job_pid = -1
-        if suggestion_progress_handle ~= nil then
-          suggestion_progress_handle:cancel()
-          suggestion_progress_handle = nil
-        end
-      end)
+      util.finish_progress(suggestion_progress_handle)
     end,
-    stream = function(err, data, s_job)
+    stream = function(err, data)
       async.util.scheduler(function()
-        if suggestion_job_pid ~= s_job.pid then
-          return
-        end
         if err then
           vim.notify(err, vim.log.levels.ERROR)
         end
@@ -114,7 +103,6 @@ local function do_suggest(timer)
       end)
     end,
   })
-  suggestion_job_pid = suggestion_job.pid
 end
 
 local function debounce()
@@ -139,17 +127,11 @@ function M.cancel()
     debounce_timer:close()
     debounce_timer = nil
   end
-  if suggestion_job_pid ~= -1 then
-    local kill = suggestion_job_pid
-    suggestion_job_pid = -1
-    pcall(function()
-      io.popen("kill " .. kill)
-    end)
+  if suggestion_job then
+    suggestion_job:shutdown()
+    suggestion_job = nil
   end
-  if suggestion_progress_handle ~= nil then
-    suggestion_progress_handle:cancel()
-    suggestion_progress_handle = nil
-  end
+  util.finish_progress(suggestion_progress_handle)
 end
 
 function M.clear()
@@ -159,16 +141,13 @@ end
 
 ---@param model string
 ---@param cb function
-local function check_model(model, cb)
-  local check_progress_handle =
+local function find_model(model, cb)
+  local find_progress_handle =
     util.get_progress_handle("Checking model " .. model)
   local check_job = curl.get("http://localhost:11434/api/tags", {
     callback = function(data)
       async.util.scheduler(function()
-        if check_progress_handle ~= nil then
-          check_progress_handle:finish()
-          check_progress_handle = nil
-        end
+        util.finish_progress(find_progress_handle)
         local body = vim.json.decode(data.body)
         for _, v in ipairs(body.models) do
           if v.name == model then
@@ -200,7 +179,7 @@ local function preload_model(model, cb)
           preload_progress_handle = nil
         end
         ready = true
-        preparing = false
+        initializing = false
         cb()
       end)
     end,
@@ -213,31 +192,22 @@ end
 local function pull_model(model, cb)
   local pull_progress_handle =
     util.get_progress_handle("Pulling model " .. model)
-  local pull_job_pid = -1
   local pull_job = curl.post("http://localhost:11434/api/pull", {
     body = vim.json.encode({ name = model }),
     callback = function()
       async.util.scheduler(function()
-        pull_job_pid = -1
-        if pull_progress_handle ~= nil then
-          pull_progress_handle:cancel()
-          pull_progress_handle = nil
-        end
+        util.finish_progress(pull_progress_handle)
       end)
     end,
-    stream = function(err, data, p_job)
+    stream = function(err, data)
       async.util.scheduler(function()
-        if pull_job_pid ~= p_job.pid then
-          return
-        end
         if err then
           vim.notify(err, vim.log.levels.ERROR)
         end
         local body = vim.json.decode(data)
         if pull_progress_handle ~= nil then
           if body.status == "success" then
-            pull_progress_handle:finish()
-            pull_progress_handle = nil
+            util.finish_progress(pull_progress_handle)
             cb()
           else
             local report = {}
@@ -254,18 +224,17 @@ local function pull_model(model, cb)
     end,
   })
   pull_job:start()
-  pull_job_pid = pull_job.pid
 end
 
 ---@param init_options Options
 ---@param cb function
 function M.init(init_options, cb)
-  if ready or preparing then
+  if ready or initializing then
     return
   end
-  preparing = true
+  initializing = true
   M.opts = init_options
-  check_model(M.opts.model, function(found)
+  find_model(M.opts.model, function(found)
     if found then
       preload_model(M.opts.model, cb)
     else

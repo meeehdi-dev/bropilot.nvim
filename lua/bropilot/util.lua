@@ -1,8 +1,7 @@
 local has_progress, progress = pcall(require, "fidget.progress")
 
 local M = {}
-
----@return number, number
+---@return number row, number col Row index & Col index of cursor in current window
 function M.get_cursor()
   local cursor = vim.api.nvim_win_get_cursor(0)
   return cursor[1], cursor[2]
@@ -53,6 +52,13 @@ function M.get_progress_handle(title)
     title = title,
     lsp_client = { name = "bropilot" },
   })
+end
+
+---@param handle unknown
+function M.finish_progress(handle)
+  if handle ~= nil then
+    handle:finish()
+  end
 end
 
 local ns_id = vim.api.nvim_create_namespace("bropilot")
