@@ -100,7 +100,7 @@ function M.cancel()
     debounce_timer = nil
   end
   if suggestion_job then
-    suggestion_job:shutdown()
+    pcall(suggestion_job.shutdown, suggestion_job)
     suggestion_job = nil
   end
   util.finish_progress(suggestion_progress_handle)
