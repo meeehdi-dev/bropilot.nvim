@@ -13,8 +13,6 @@ local suggestion_progress_handle = nil
 local ready = false
 ---@type boolean
 local initializing = false
----@type boolean
-local suggesting = false
 ---@type uv_timer_t | nil
 local debounce_timer = nil
 
@@ -38,6 +36,7 @@ local function on_data(data)
   if data == nil then
     return
   end
+
   local body = vim.json.decode(data)
   if body.done then
     util.finish_progress(suggestion_progress_handle)
@@ -62,18 +61,9 @@ local function on_data(data)
   M.render_suggestion()
 end
 
----@param timer uv_timer_t
-local function do_suggest(timer)
-  if not suggesting then
-    return
-  end
-
-  if timer ~= debounce_timer then
-    return
-  end
-
+local function do_suggest()
   local row, col = util.get_cursor()
-  local current_line = vim.api.nvim_buf_get_lines(0, row - 1, row, true)[1]
+  local current_line = util.get_lines(row - 1, row)[1]
 
   if col < #current_line then
     -- TODO: trim but only trailing whitespace (not vim.trim()...)
@@ -83,9 +73,7 @@ local function do_suggest(timer)
   local prefix, suffix = util.get_context()
 
   context_line = current_line
-  if suggestion_progress_handle == nil then
-    suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-  end
+  suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   suggestion_job = curl.post("http://localhost:11434/api/generate", {
     body = vim.json.encode({
       model = M.opts.model,
@@ -105,23 +93,7 @@ local function do_suggest(timer)
   })
 end
 
-local function debounce()
-  local timer = vim.uv.new_timer()
-  if
-    timer:start(
-      M.opts.debounce,
-      0,
-      vim.schedule_wrap(function()
-        do_suggest(timer)
-      end)
-    ) == 0
-  then
-    debounce_timer = timer
-  end
-end
-
 function M.cancel()
-  suggesting = false
   if debounce_timer then
     debounce_timer:stop()
     debounce_timer:close()
@@ -279,9 +251,17 @@ function M.suggest()
     M.init(M.opts, M.suggest)
     return
   end
-  suggesting = true
 
-  debounce()
+  local timer = vim.uv.new_timer()
+  if
+    timer:start(M.opts.debounce, 0, function()
+      async.util.scheduler(function()
+        do_suggest()
+      end)
+    end) == 0
+  then
+    debounce_timer = timer
+  end
 end
 
 ---@return string
