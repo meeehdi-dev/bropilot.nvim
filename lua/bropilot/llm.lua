@@ -255,6 +255,7 @@ function M.suggest()
   local timer = vim.uv.new_timer()
   if
     timer:start(M.opts.debounce, 0, function()
+      debounce_timer = nil
       async.util.scheduler(function()
         do_suggest()
       end)
