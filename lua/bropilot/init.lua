@@ -21,16 +21,7 @@ vim.api.nvim_create_autocmd({ "InsertEnter" }, {
   end,
 })
 
-vim.api.nvim_create_autocmd({ "CursorMovedI" }, {
-  callback = function()
-    llm.cancel()
-    llm.clear()
-
-    llm.suggest()
-  end,
-})
-
-vim.api.nvim_create_autocmd({ "TextChangedI" }, {
+vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
   callback = function()
     local row = util.get_cursor()
     local current_line = util.get_lines(row - 1, row)[1]
@@ -56,6 +47,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI" }, {
       )
 
     if partially_accepted_suggestion or context_contains_suggestion then
+      -- TODO: handle cursor moving back inside context
       llm.render_suggestion()
       return
     end
