@@ -252,6 +252,10 @@ function M.suggest()
     return
   end
 
+  if debounce_timer and debounce_timer:again() == 0 then
+    return
+  end
+
   local timer = vim.uv.new_timer()
   if
     timer:start(M.opts.debounce, 0, function()
