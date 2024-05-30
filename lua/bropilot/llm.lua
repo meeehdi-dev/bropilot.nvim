@@ -321,15 +321,31 @@ function M.accept_line()
     start = start + 1
     table.remove(suggestion_lines, 1)
     suggestion_line = suggestion_lines[1]
-    sug_start = 1
+    sug_start = sug_start + 1
   end
   local len = #suggestion_line
   suggestion_line = context_line .. suggestion_line
   local col = #suggestion_line
-  vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_line })
-  vim.api.nvim_win_set_cursor(0, { start + 1, col })
+  -- vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_line, "" })
+  -- vim.api.nvim_win_set_cursor(0, { start + 1 + 1, col })
 
-  suggestion = string.sub(suggestion, sug_start + len + 1)
+  suggestion = string.sub(suggestion, sug_start + len + 1 + 1)
+
+  -- TODO: REWRITE THIS IS UGLY AF
+
+  local first_line = vim.split(suggestion, "\n")[1]
+  local sug_len = #first_line
+  local trim_sug = vim.trim(first_line)
+  local trim_sug_len = #trim_sug
+  local diff = sug_len - trim_sug_len
+  vim.notify("yo " .. diff)
+  local next = ""
+  for i = 1, diff do
+    next = next .. " "
+  end
+  vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_line, next })
+  vim.api.nvim_win_set_cursor(0, { start + 1 + 1, diff })
+
   context_line = ""
 end
 
