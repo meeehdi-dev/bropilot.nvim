@@ -82,6 +82,11 @@ local function do_suggest()
     callback = function()
       util.finish_progress(suggestion_progress_handle)
     end,
+    on_error = function(err)
+      if err.code ~= nil then
+        vim.notify(err.message)
+      end
+    end,
     stream = function(err, data)
       async.util.scheduler(function()
         if err then
@@ -100,7 +105,7 @@ function M.cancel()
     debounce_timer = nil
   end
   if suggestion_job then
-    pcall(suggestion_job.shutdown, suggestion_job)
+    suggestion_job:shutdown()
     suggestion_job = nil
   end
   util.finish_progress(suggestion_progress_handle)
@@ -252,8 +257,10 @@ function M.suggest()
     return
   end
 
-  if debounce_timer and debounce_timer:again() == 0 then
-    return
+  if debounce_timer then
+    debounce_timer:stop()
+    debounce_timer:close()
+    debounce_timer = nil
   end
 
   local timer = vim.uv.new_timer()
