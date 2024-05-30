@@ -32,12 +32,11 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
 
     -- FIXME: can possibly be simplified
     local has_suggestion = current_suggestion ~= "" and #suggestion_lines > 0
-    local partially_accepted_suggestion = has_suggestion
-      and context_line == ""
-      -- and suggestion_lines[1] == ""
+    local partially_accepted_suggestion = has_suggestion and context_line == ""
+    -- and suggestion_lines[1] == ""
     -- TODO: handle partial block accept but this feels wrong...
     local partially_accepted_block = partially_accepted_suggestion
-      -- and suggestion_lines[1] == ""
+    -- and suggestion_lines[1] == ""
     local context_contains_suggestion = has_suggestion
       and context_line ~= ""
       and #current_line >= #context_line
