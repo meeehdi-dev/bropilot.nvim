@@ -30,23 +30,12 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
     local current_suggestion = llm.get_suggestion()
     local suggestion_lines = vim.split(current_suggestion, "\n")
 
-    -- FIXME: can possibly be simplified
-    local has_suggestion = current_suggestion ~= "" and #suggestion_lines > 0
-    local partially_accepted_suggestion = has_suggestion and context_line == ""
-    -- and suggestion_lines[1] == ""
-    -- TODO: handle partial block accept but this feels wrong...
-    local partially_accepted_block = partially_accepted_suggestion
-    -- and suggestion_lines[1] == ""
-    local context_contains_suggestion = has_suggestion
-      and context_line ~= ""
-      and #current_line >= #context_line
-      and string.find(
+    local current_line_contains_suggestion = string.find(
         vim.pesc(context_line .. suggestion_lines[1]),
         vim.pesc(current_line)
       )
 
-    if partially_accepted_suggestion or context_contains_suggestion then
-      -- TODO: handle cursor moving back inside context
+    if current_line_contains_suggestion then
       llm.render_suggestion()
       return
     end

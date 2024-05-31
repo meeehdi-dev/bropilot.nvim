@@ -232,20 +232,16 @@ function M.render_suggestion()
     return
   end
 
-  -- keep showing all suggestions but accept only block by block
-  local block = vim.split(suggestion, "\n\n")[1] -- only take first block when rendering
-  local suggestion_lines = vim.split(block, "\n")
-  -- FIXME: seems to not work anymore? weirdge
-  -- local suggestion_lines = vim.split(suggestion, "\n")
+  local suggestion_lines = vim.split(suggestion, "\n")
 
-  if suggestion_lines[1] ~= "" then
-    local row, col = util.get_cursor()
-    local current_line = util.get_lines(row - 1, row)[1]
-    local diff = #current_line - #context_line
-    if diff > 0 then
-      suggestion_lines[1] = string.sub(current_line, col + 1)
-        .. string.sub(suggestion_lines[1], diff + 1)
-    end
+  local row = util.get_cursor()
+  local current_line = util.get_lines(row - 1, row)[1]
+  local _start, _end = string.find(
+    vim.pesc(context_line .. suggestion_lines[1]),
+    vim.pesc(current_line)
+  )
+  if _end ~= nil then
+    suggestion_lines[1] = string.sub(context_line .. suggestion_lines[1], _end + 1)
   end
 
   util.render_virtual_text(suggestion_lines)
@@ -310,43 +306,41 @@ function M.accept_line()
     return
   end
 
-  local block = vim.split(suggestion, "\n\n")[1]
+  local suggestion_lines = vim.split(suggestion, "\n")
 
-  local suggestion_lines = vim.split(block, "\n")
-  local suggestion_line = suggestion_lines[1]
   local row = util.get_cursor()
-  local start = row - 1
-  local sug_start = 0
-  if context_line == "" and suggestion_line == "" then
-    start = start + 1
-    table.remove(suggestion_lines, 1)
-    suggestion_line = suggestion_lines[1]
-    sug_start = sug_start + 1
+  local current_line = util.get_lines(row - 1, row)[1]
+  local _start, _end = string.find(
+    vim.pesc(context_line .. suggestion_lines[1]),
+    vim.pesc(current_line)
+  )
+  if _end ~= nil then
+    suggestion_lines[1] = string.sub(context_line .. suggestion_lines[1], _end + 1)
   end
-  local len = #suggestion_line
-  suggestion_line = context_line .. suggestion_line
-  local col = #suggestion_line
-  -- vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_line, "" })
-  -- vim.api.nvim_win_set_cursor(0, { start + 1 + 1, col })
 
-  suggestion = string.sub(suggestion, sug_start + len + 1 + 1)
-
-  -- TODO: REWRITE THIS IS UGLY AF
-
-  local first_line = vim.split(suggestion, "\n")[1]
-  local sug_len = #first_line
-  local trim_sug = vim.trim(first_line)
-  local trim_sug_len = #trim_sug
-  local diff = sug_len - trim_sug_len
-  vim.notify("yo " .. diff)
-  local next = ""
-  for i = 1, diff do
-    next = next .. " "
+  local start_of_next_line = ""
+  local next_line = suggestion_lines[2]
+  if next_line ~= nil then
+    local _start_next, _end_next = string.find(next_line, "[%w%p]")
+    if _start_next ~= nil and _end_next ~= nil then
+      start_of_next_line = string.sub(next_line, 1, _end_next - 1)
+      suggestion_lines[2] = string.sub(suggestion_lines[2], #start_of_next_line + 1)
+    end
   end
-  vim.api.nvim_buf_set_lines(0, start, row, true, { suggestion_line, next })
-  vim.api.nvim_win_set_cursor(0, { start + 1 + 1, diff })
 
-  context_line = ""
+  vim.api.nvim_buf_set_lines(
+    0,
+    row - 1,
+    row,
+    true,
+    { current_line .. suggestion_lines[1], start_of_next_line }
+  )
+  vim.api.nvim_win_set_cursor(0, { row + 1, #start_of_next_line })
+
+  table.remove(suggestion_lines, 1)
+  suggestion = util.join(suggestion_lines, "\n")
+
+  context_line = start_of_next_line
 end
 
 function M.accept_block()
@@ -368,15 +362,11 @@ function M.accept_block()
   local len = #block
   suggestion_lines[1] = context_line .. suggestion_lines[1]
   vim.api.nvim_buf_set_lines(0, start, row, true, suggestion_lines)
-  local last_line = suggestion_lines[#suggestion_lines]
-  local col = #last_line
-  if last_line == "" then
-    col = 0
-  end
-  vim.api.nvim_win_set_cursor(0, { start + #suggestion_lines, col })
+  vim.api.nvim_win_set_cursor(0, { start + #suggestion_lines + 1, 0 })
 
-  -- FIXME: doesn't work atm
-  suggestion = string.sub(suggestion, sug_start + len + 1) -- remove first block
+  -- TODO: improve and directly go to next block
+
+  suggestion = string.sub(suggestion, sug_start + len + 1 + 1) -- remove first block
   context_line = ""
 end
 
