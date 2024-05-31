@@ -321,7 +321,7 @@ function M.accept_line()
   local start_of_next_line = ""
   local next_line = suggestion_lines[2]
   if next_line ~= nil then
-    local _start_next, _end_next = string.find(next_line, "[%w%p]")
+    local _start_next, _end_next = string.find(next_line, "[^%s]")
     if _start_next ~= nil and _end_next ~= nil then
       start_of_next_line = string.sub(next_line, 1, _end_next - 1)
       suggestion_lines[2] = string.sub(suggestion_lines[2], #start_of_next_line + 1)
