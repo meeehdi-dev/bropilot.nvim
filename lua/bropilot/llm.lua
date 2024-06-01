@@ -62,13 +62,8 @@ local function on_data(data)
 end
 
 local function do_suggest()
-  local row, col = util.get_cursor()
+  local row = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
-
-  if col < #current_line then
-    -- TODO: trim but only trailing whitespace (not vim.trim()...)
-    return -- cancel because cursor is before end of line
-  end
 
   local prefix, suffix = util.get_context()
 
@@ -268,8 +263,13 @@ function M.render_suggestion()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
-  local row = util.get_cursor()
+  local row, col = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
+
+  if col < #current_line then
+    return
+  end
+
   local _, end_ = string.find(
     vim.pesc(context_line .. suggestion_lines[1]),
     vim.pesc(current_line)
