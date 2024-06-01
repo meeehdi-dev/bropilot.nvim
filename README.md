@@ -71,7 +71,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   -- or
   {
     'meeehdi-dev/bropilot.nvim',
-    event = "InsertEnter", -- preload model on insert start
+    event = "VeryLazy", -- preload model on start
     dependencies = {
       "nvim-lua/plenary.nvim",
       -- "j-hui/fidget.nvim", -- optional
@@ -162,7 +162,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   - [ ] refactor
   - [ ] comment
   - [ ] chat
-  - [ ] commit msg (using git diff --staged + concentional commit rules)
+  - [ ] commit msg (using git diff --staged + conventional commit rules)
 - [ ] add more context to prompt
   - [ ] opened splits outlines
   - [ ] opened tabs outlines

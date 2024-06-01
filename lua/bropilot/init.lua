@@ -67,7 +67,27 @@ function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 
   -- setup options (model, prompt, keep_alive, params, etc...)
-  llm.init(M.opts, llm.suggest) -- FIXME: llm.suggest should prolly be called separately only if in insert mode depending on lazy setup
+  llm.init(M.opts, function()
+    local mode = vim.api.nvim_get_mode()
+
+    if mode == "i" or mode == "r" then
+      llm.suggest()
+    end
+  end)
+
+  vim.api.nvim_create_user_command("Bro", function(params)
+    local cmd = params.fargs[1]
+    if cmd == "describe" then
+      -- TODO:
+      vim.print("describe")
+    end
+  end, {
+    nargs = 1,
+    range = true,
+    complete = function()
+      return { "describe", "refactor", "comment", "chat", "commit" }
+    end,
+  })
 end
 
 return M
