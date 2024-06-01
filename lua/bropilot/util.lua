@@ -98,4 +98,9 @@ function M.clear_virtual_text()
   end
 end
 
+---@param v any
+function M.log(v)
+  vim.print(vim.inspect(v))
+end
+
 return M
