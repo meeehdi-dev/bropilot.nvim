@@ -130,7 +130,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] improve init
 - [x] rewrite async handling and use callbacks to avoid timing problems
 - [x] rejoin model & tag
-- [ ] fix: partial accept + newline => doesn't clear suggestion
+- [x] fix: partial accept + newline => doesn't clear suggestion
 - [x] fix: sometimes the pid is already killed
 - [ ] fix: notify non existent model
 - [x] some lua callbacks in async process, need to use scheduler (async util function)
