@@ -154,6 +154,8 @@ local function preload_model(model, cb)
         if preload_progress_handle ~= nil then
           preload_progress_handle:finish()
           preload_progress_handle = nil
+        else
+          vim.notify("Preloaded model " .. model .. " successfully!", vim.log.levels.INFO)
         end
         ready = true
         initializing = false
@@ -183,11 +185,14 @@ local function pull_model(model, cb)
         end
         local body = vim.json.decode(data)
         if pull_progress_handle ~= nil then
-          if body.status == "success" then
+          if body.error then
+            vim.notify(body.error, vim.log.levels.ERROR)
+            util.finish_progress(pull_progress_handle)
+          elseif body.status == "success" then
             util.finish_progress(pull_progress_handle)
             cb()
           else
-            local report = {}
+            local report = { message = "", percentage = 100 }
             if body.status then
               report.message = body.status
             end
@@ -195,6 +200,32 @@ local function pull_model(model, cb)
               report.percentage = body.completed / body.total * 100
             end
             pull_progress_handle:report(report)
+          end
+        else
+          if body.error then
+            vim.notify(body.error, vim.log.levels.ERROR)
+          elseif body.status == "success" then
+            vim.notify(
+              "Pulled model " .. model .. " successfully!",
+              vim.log.levels.INFO
+            )
+            cb()
+          else
+            local report = { message = "", percentage = 100 }
+            if body.status then
+              report.message = body.status
+            end
+            if body.completed ~= nil and body.total ~= nil then
+              report.percentage = body.completed / body.total * 100
+            end
+            vim.notify(
+              "Pulling model: "
+                .. report.message
+                .. " ("
+                .. report.percentage
+                .. "%)",
+              vim.log.levels.INFO
+            )
           end
         end
       end)

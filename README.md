@@ -132,7 +132,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] rejoin model & tag
 - [x] fix: partial accept + newline => doesn't clear suggestion
 - [x] fix: sometimes the pid is already killed
-- [ ] fix: notify non existent model
+- [x] fix: notify non existent model
 - [x] some lua callbacks in async process, need to use scheduler (async util function)
 - [x] wait for model to be ready before trying to suggest (does ollama api provide that info? -> using preload)
 - [x] check that suggestion is created after model finishes preload
