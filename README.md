@@ -155,6 +155,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] replace unix sleep with async job
 - [x] accept word
 - [ ] avoid adding newline on accept if no next suggestion
+- [ ] when accepting word that is whitespace only, skip to next word
 - [ ] commands (might need additional model -instruct?-)
   - [ ] describe
   - [ ] refactor
