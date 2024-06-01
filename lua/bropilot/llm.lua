@@ -367,6 +367,7 @@ function M.accept_word()
   end
 end
 
+-- TODO: refactor
 function M.accept_line()
   if #suggestion == 0 then
     return
@@ -385,22 +386,21 @@ function M.accept_line()
       string.sub(context_line .. suggestion_lines[1], end_ + 1)
   end
 
-  local start_of_next_line = ""
+  local start_of_next_line = suggestion_lines[1]
   local next_line = suggestion_lines[2]
+  local next_lines = { current_line .. suggestion_lines[1] }
   if next_line ~= nil then
     local _, next_char_end = string.find(next_line, "[^%s]")
     if next_char_end ~= nil then
       start_of_next_line = string.sub(next_line, 1, next_char_end - 1)
       suggestion_lines[2] =
         string.sub(suggestion_lines[2], #start_of_next_line + 1)
+      table.insert(next_lines, start_of_next_line)
     end
   end
 
-  util.set_lines(row - 1, row, {
-    current_line .. suggestion_lines[1],
-    start_of_next_line,
-  })
-  util.set_cursor(row + 1, #start_of_next_line)
+  util.set_lines(row - 1, row, next_lines)
+  util.set_cursor(row + #next_lines - 1, #start_of_next_line)
 
   table.remove(suggestion_lines, 1)
   suggestion = util.join(suggestion_lines, "\n")
@@ -413,27 +413,26 @@ function M.accept_block()
     return
   end
 
-  local block = vim.split(suggestion, "\n\n")[1]
+  local blocks = vim.split(suggestion, "\n\n")
+  local block = blocks[1]
 
   local row = util.get_cursor()
   local suggestion_lines = vim.split(block, "\n")
-  local start = row - 1
-  local sug_start = 0
-  if context_line == "" and suggestion_lines[1] == "" then
-    start = start + 1
-    table.remove(suggestion_lines, 1)
-    sug_start = 1
-  end
-  local len = #block
   suggestion_lines[1] = context_line .. suggestion_lines[1]
 
-  util.set_lines(start, row, suggestion_lines)
-  util.set_cursor(start + #suggestion_lines + 1, 0)
+  if blocks[2] ~= nil then
+    table.insert(suggestion_lines, "")
+    table.insert(suggestion_lines, "")
+  end
 
-  -- TODO: improve and directly go to next block
+  util.set_lines(row - 1, row, suggestion_lines)
+  util.set_cursor(
+    row - 1 + #suggestion_lines,
+    #suggestion_lines[#suggestion_lines]
+  )
 
-  suggestion = string.sub(suggestion, sug_start + len + 1 + 1) -- remove first block
-  context_line = ""
+  suggestion = string.sub(suggestion, #block + 2 + 1)
+  context_line = suggestion_lines[#suggestion_lines]
 end
 
 return M
