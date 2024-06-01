@@ -24,20 +24,24 @@ vim.api.nvim_create_autocmd({ "InsertEnter" }, {
 vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
   callback = function()
     local row = util.get_cursor()
-    local current_line = util.get_lines(row - 1, row)[1]
-    local context_line = llm.get_context_line()
+    local context_row = llm.get_context_row()
 
-    local current_suggestion = llm.get_suggestion()
-    local suggestion_lines = vim.split(current_suggestion, "\n")
+    if row == context_row then
+      local current_line = util.get_lines(row - 1, row)[1]
+      local context_line = llm.get_context_line()
 
-    local current_line_contains_suggestion = string.find(
+      local current_suggestion = llm.get_suggestion()
+      local suggestion_lines = vim.split(current_suggestion, "\n")
+
+      local current_line_contains_suggestion = string.find(
         vim.pesc(context_line .. suggestion_lines[1]),
         vim.pesc(current_line)
       )
 
-    if current_line_contains_suggestion then
-      llm.render_suggestion()
-      return
+      if current_line_contains_suggestion then
+        llm.render_suggestion()
+        return
+      end
     end
 
     llm.cancel()

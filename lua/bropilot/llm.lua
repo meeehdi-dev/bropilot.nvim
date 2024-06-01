@@ -8,6 +8,7 @@ local suggestion_job = nil
 local suggestion = ""
 ---@type string
 local context_line = ""
+local context_row = -1
 local suggestion_progress_handle = nil
 ---@type boolean
 local ready = false
@@ -68,6 +69,7 @@ local function do_suggest()
   local prefix, suffix = util.get_context()
 
   context_line = current_line
+  context_row = row
   suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   suggestion_job = curl.post("http://localhost:11434/api/generate", {
     body = vim.json.encode({
@@ -317,6 +319,11 @@ function M.get_context_line()
   return context_line
 end
 
+---@return number
+function M.get_context_row()
+  return context_row
+end
+
 function M.accept_word()
   if #suggestion == 0 then
     return
@@ -364,6 +371,7 @@ function M.accept_word()
     suggestion = util.join(suggestion_lines, "\n")
 
     context_line = start_of_next_line
+    context_row = row + 1
   end
 end
 
@@ -406,6 +414,7 @@ function M.accept_line()
   suggestion = util.join(suggestion_lines, "\n")
 
   context_line = start_of_next_line
+  context_row = row + #next_lines - 1
 end
 
 function M.accept_block()
@@ -433,6 +442,7 @@ function M.accept_block()
 
   suggestion = string.sub(suggestion, #block + 2 + 1)
   context_line = suggestion_lines[#suggestion_lines]
+  context_row = row - 1 + #suggestion_lines
 end
 
 return M

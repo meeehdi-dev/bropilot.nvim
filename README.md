@@ -155,8 +155,8 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] replace unix sleep with async job
 - [x] accept word
 - [x] avoid adding newline on accept if no next suggestion
-- [ ] ~~when accepting word that is whitespace only, skip to next word~~
-- [ ] store context line number to avoid rerendering same suggestion on other lines
+- [x] ~~when accepting word that is whitespace only, skip to next word~~
+- [x] store context line number to avoid rerendering same suggestion on other lines
 - [ ] commands (might need additional model -instruct?-)
   - [ ] describe
   - [ ] refactor
@@ -164,7 +164,8 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   - [ ] chat
   - [ ] commit msg (using git diff --staged + concentional commit rules)
 - [ ] add more context to prompt
-  - [ ] opened splits
-  - [ ] opened tabs
-  - [ ] lsp info (arg types, return types)
-  - [ ] imported files outlines (with lsp info also?)
+  - [ ] opened splits outlines
+  - [ ] opened tabs outlines
+  - [ ] opened buffers outlines
+  - [ ] lsp info
+  - [ ] imported files outlines
