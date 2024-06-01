@@ -153,7 +153,8 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] check if model is listed in ollama api
 - [x] pull model if not listed (behind option)
 - [x] replace unix sleep with async job
-- [ ] accept word
+- [x] accept word
+- [ ] avoid adding newline on accept if no next suggestion
 - [ ] commands (might need additional model -instruct?-)
   - [ ] describe
   - [ ] refactor

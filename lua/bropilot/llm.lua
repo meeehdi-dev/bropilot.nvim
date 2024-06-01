@@ -155,7 +155,10 @@ local function preload_model(model, cb)
           preload_progress_handle:finish()
           preload_progress_handle = nil
         else
-          vim.notify("Preloaded model " .. model .. " successfully!", vim.log.levels.INFO)
+          vim.notify(
+            "Preloaded model " .. model .. " successfully!",
+            vim.log.levels.INFO
+          )
         end
         ready = true
         initializing = false
@@ -319,18 +322,56 @@ function M.accept_word()
     return
   end
 
-  local block = vim.split(suggestion, "\n\n")[1]
+  local suggestion_lines = vim.split(suggestion, "\n")
 
-  local suggestion_lines = vim.split(block, "\n")
   local row = util.get_cursor()
-  local start = row - 1
-  if context_line == "" and suggestion_lines[1] == "" then
-    start = start + 1
-    table.remove(suggestion_lines, 1)
+  local current_line = util.get_lines(row - 1, row)[1]
+  local _, _end = string.find(
+    vim.pesc(context_line .. suggestion_lines[1]),
+    vim.pesc(current_line)
+  )
+  if _end ~= nil then
+    suggestion_lines[1] =
+      string.sub(context_line .. suggestion_lines[1], _end + 1)
   end
-  suggestion_lines[1] = context_line .. suggestion_lines[1]
 
-  vim.notify("NOT YET IMPLEMENTED", vim.log.levels.WARN)
+  local _, _end_word = string.find(suggestion_lines[1], "%s")
+  if _end_word ~= nil then
+    local suggestion_word = string.sub(suggestion_lines[1], 1, _end_word)
+    vim.api.nvim_buf_set_lines(
+      0,
+      row - 1,
+      row,
+      true,
+      { current_line .. suggestion_word }
+    )
+    vim.api.nvim_win_set_cursor(0, { row, #(current_line .. suggestion_word) })
+  else
+    local start_of_next_line = ""
+    local next_line = suggestion_lines[2]
+    if next_line ~= nil then
+      local _, _end_next = string.find(next_line, "[^%s]")
+      if _end_next ~= nil then
+        start_of_next_line = string.sub(next_line, 1, _end_next - 1)
+        suggestion_lines[2] =
+          string.sub(suggestion_lines[2], #start_of_next_line + 1)
+      end
+    end
+
+    vim.api.nvim_buf_set_lines(
+      0,
+      row - 1,
+      row,
+      true,
+      { current_line .. suggestion_lines[1], start_of_next_line }
+    )
+    vim.api.nvim_win_set_cursor(0, { row + 1, #start_of_next_line })
+
+    table.remove(suggestion_lines, 1)
+    suggestion = util.join(suggestion_lines, "\n")
+
+    context_line = start_of_next_line
+  end
 end
 
 function M.accept_line()
