@@ -338,14 +338,9 @@ function M.accept_word()
   local _, word_end = string.find(suggestion_lines[1], "%s")
   if word_end ~= nil then
     local suggestion_word = string.sub(suggestion_lines[1], 1, word_end)
-    vim.api.nvim_buf_set_lines(
-      0,
-      row - 1,
-      row,
-      true,
-      { current_line .. suggestion_word }
-    )
-    vim.api.nvim_win_set_cursor(0, { row, #(current_line .. suggestion_word) })
+
+    util.set_lines(row - 1, row, { current_line .. suggestion_word })
+    util.set_cursor(row, #(current_line .. suggestion_word))
   else
     local start_of_next_line = ""
     local next_line = suggestion_lines[2]
@@ -358,14 +353,12 @@ function M.accept_word()
       end
     end
 
-    vim.api.nvim_buf_set_lines(
-      0,
+    util.set_lines(
       row - 1,
       row,
-      true,
       { current_line .. suggestion_lines[1], start_of_next_line }
     )
-    vim.api.nvim_win_set_cursor(0, { row + 1, #start_of_next_line })
+    util.set_cursor(row + 1, #start_of_next_line)
 
     table.remove(suggestion_lines, 1)
     suggestion = util.join(suggestion_lines, "\n")
@@ -403,14 +396,11 @@ function M.accept_line()
     end
   end
 
-  vim.api.nvim_buf_set_lines(
-    0,
-    row - 1,
-    row,
-    true,
-    { current_line .. suggestion_lines[1], start_of_next_line }
-  )
-  vim.api.nvim_win_set_cursor(0, { row + 1, #start_of_next_line })
+  util.set_lines(row - 1, row, {
+    current_line .. suggestion_lines[1],
+    start_of_next_line,
+  })
+  util.set_cursor(row + 1, #start_of_next_line)
 
   table.remove(suggestion_lines, 1)
   suggestion = util.join(suggestion_lines, "\n")
@@ -436,8 +426,9 @@ function M.accept_block()
   end
   local len = #block
   suggestion_lines[1] = context_line .. suggestion_lines[1]
-  vim.api.nvim_buf_set_lines(0, start, row, true, suggestion_lines)
-  vim.api.nvim_win_set_cursor(0, { start + #suggestion_lines + 1, 0 })
+
+  util.set_lines(start, row, suggestion_lines)
+  util.set_cursor(start + #suggestion_lines + 1, 0)
 
   -- TODO: improve and directly go to next block
 

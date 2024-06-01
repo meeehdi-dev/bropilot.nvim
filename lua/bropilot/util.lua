@@ -7,6 +7,12 @@ function M.get_cursor()
   return cursor[1], cursor[2]
 end
 
+---@param row number
+---@param col number
+function M.set_cursor(row, col)
+  vim.api.nvim_win_set_cursor(0, { row, col })
+end
+
 ---@param start number
 ---@param end_ number | nil
 ---@return string[]
@@ -15,6 +21,13 @@ function M.get_lines(start, end_)
     end_ = vim.api.nvim_buf_line_count(0)
   end
   return vim.api.nvim_buf_get_lines(0, start, end_, true)
+end
+
+---@param start number
+---@param end_ number
+---@param lines string[]
+function M.set_lines(start, end_, lines)
+  vim.api.nvim_buf_set_lines(0, start, end_, true, lines)
 end
 
 ---@param array string []
