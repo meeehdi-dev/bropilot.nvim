@@ -236,12 +236,13 @@ function M.render_suggestion()
 
   local row = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
-  local _start, _end = string.find(
+  local _, _end = string.find(
     vim.pesc(context_line .. suggestion_lines[1]),
     vim.pesc(current_line)
   )
   if _end ~= nil then
-    suggestion_lines[1] = string.sub(context_line .. suggestion_lines[1], _end + 1)
+    suggestion_lines[1] =
+      string.sub(context_line .. suggestion_lines[1], _end + 1)
   end
 
   util.render_virtual_text(suggestion_lines)
@@ -310,21 +311,23 @@ function M.accept_line()
 
   local row = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
-  local _start, _end = string.find(
+  local _, _end = string.find(
     vim.pesc(context_line .. suggestion_lines[1]),
     vim.pesc(current_line)
   )
   if _end ~= nil then
-    suggestion_lines[1] = string.sub(context_line .. suggestion_lines[1], _end + 1)
+    suggestion_lines[1] =
+      string.sub(context_line .. suggestion_lines[1], _end + 1)
   end
 
   local start_of_next_line = ""
   local next_line = suggestion_lines[2]
   if next_line ~= nil then
-    local _start_next, _end_next = string.find(next_line, "[^%s]")
-    if _start_next ~= nil and _end_next ~= nil then
+    local _, _end_next = string.find(next_line, "[^%s]")
+    if _end_next ~= nil then
       start_of_next_line = string.sub(next_line, 1, _end_next - 1)
-      suggestion_lines[2] = string.sub(suggestion_lines[2], #start_of_next_line + 1)
+      suggestion_lines[2] =
+        string.sub(suggestion_lines[2], #start_of_next_line + 1)
     end
   end
 
