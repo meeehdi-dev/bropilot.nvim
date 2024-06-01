@@ -156,6 +156,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] accept word
 - [ ] avoid adding newline on accept if no next suggestion
 - [ ] when accepting word that is whitespace only, skip to next word
+- [ ] store context line number to avoid rerendering same suggestion on other lines
 - [ ] commands (might need additional model -instruct?-)
   - [ ] describe
   - [ ] refactor
