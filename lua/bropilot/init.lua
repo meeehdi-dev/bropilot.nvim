@@ -1,3 +1,5 @@
+local curl = require("plenary.curl")
+local async = require("plenary.async")
 local llm = require("bropilot.llm")
 local util = require("bropilot.util")
 
@@ -78,8 +80,64 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("Bro", function(params)
     local cmd = params.fargs[1]
     if cmd == "describe" then
-      -- TODO:
-      vim.print("describe")
+      local lines = util.get_lines(params.line1 - 1, params.line2)
+      local code = util.join(lines, "\n")
+
+      local float_buf_id = vim.api.nvim_create_buf(false, true)
+      local win_width = vim.api.nvim_win_get_width(0)
+      local win_height = vim.api.nvim_win_get_height(0)
+
+      local float_win_id = vim.api.nvim_open_win(float_buf_id, false, {
+        relative = "win",
+        win = 0,
+        row = math.floor(win_height / 2 - 10),
+        col = math.floor(win_width / 4),
+        width = math.ceil(win_width / 2),
+        border = "single",
+        height = 20,
+        focusable = false,
+        style = "minimal",
+        noautocmd = true,
+      })
+      vim.api.nvim_set_current_win(float_win_id)
+      local filetype = vim.api.nvim_get_option_value("filetype", { buf = 0 })
+      local text = ""
+
+      curl.post("http://localhost:11434/api/generate", {
+        body = vim.json.encode({
+          model = "llama3:8b",
+          prompt = "Describe the following code:\n```"
+            .. filetype
+            .. "\n"
+            .. code
+            .. "\n```",
+        }),
+        callback = function()
+          -- util.finish_progress(describe_progress_handle)
+        end,
+        on_error = function(err)
+          if err.code ~= nil then
+            vim.notify(err.message)
+          end
+        end,
+        stream = function(err, data)
+          async.util.scheduler(function()
+            if err then
+              vim.notify(err, vim.log.levels.ERROR)
+            end
+            local body = vim.json.decode(data)
+            text = text .. (body.response or "")
+
+            vim.api.nvim_buf_set_lines(
+              float_buf_id,
+              0,
+              -1,
+              true,
+              vim.split(text, "\n")
+            )
+          end)
+        end,
+      })
     end
   end, {
     nargs = 1,

@@ -150,6 +150,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
   - [x] show progress
   - [ ] keep all current suggestions in memory (option to keep only n blocks)
   - [ ] ollama params
+  - [ ] commands model (fim models don't work for normal text)
 - [x] check if model is listed in ollama api
 - [x] pull model if not listed (behind option)
 - [x] replace unix sleep with async job
@@ -157,8 +158,8 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
 - [x] avoid adding newline on accept if no next suggestion
 - [x] ~~when accepting word that is whitespace only, skip to next word~~
 - [x] store context line number to avoid rerendering same suggestion on other lines
-- [ ] commands (might need additional model -instruct?-)
-  - [ ] describe
+- [ ] commands (needs additional model!)
+  - [x] describe (wip)
   - [ ] refactor
   - [ ] comment
   - [ ] chat

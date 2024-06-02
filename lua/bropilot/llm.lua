@@ -33,8 +33,8 @@ local get_prompt = function(prefix, suffix)
 end
 
 ---@param data string
-local function on_data(data)
-  if data == nil then
+local function on_suggestion_data(data)
+  if data == nil or type(data) ~= "string" then
     return
   end
 
@@ -89,7 +89,7 @@ local function do_suggest()
         if err then
           vim.notify(err, vim.log.levels.ERROR)
         end
-        on_data(data)
+        on_suggestion_data(data)
       end)
     end,
   })
