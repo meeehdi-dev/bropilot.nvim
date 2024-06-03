@@ -115,3 +115,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     },
   }
 ```
+
+## Roadmap
+
+Roadmap available at [ROADMAP.md](https://github.com/meeehdi-dev/bropilot.nvim/blob/main/ROADMAP.md)
