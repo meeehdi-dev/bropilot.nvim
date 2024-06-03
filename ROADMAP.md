@@ -1,0 +1,54 @@
+# Roadmap
+
+- [x] show suggestion as virtual text
+- [x] accept line
+- [x] accept block
+- [x] progress while suggesting
+- [x] cleanup current code
+- [x] skip suggestion if text after cursor (except if just moving?)
+- [x] fix: accepting line resets suggestion
+- [x] fix: remove additional newlines at end of suggestion
+- [x] fix: sometimes the suggestion is not cancelled even tho inserted text doesn't match
+- [x] improve init
+- [x] rewrite async handling and use callbacks to avoid timing problems
+- [x] rejoin model & tag
+- [x] fix: partial accept + newline => doesn't clear suggestion
+- [x] fix: sometimes the pid is already killed
+- [x] fix: notify non existent model
+- [x] some lua callbacks in async process, need to use scheduler (async util function)
+- [x] wait for model to be ready before trying to suggest (does ollama api provide that info? -> using preload)
+- [x] check that suggestion is created after model finishes preload
+- [ ] notify on ollama api errors
+- [x] keep subsequent suggestions in memory
+- [x] accepting block resets suggestions
+- [x] refactor everything
+- [x] fix: keep same suggestion when partially accepting
+- [ ] custom init options
+  - [x] model
+  - [x] ~~tag~~
+  - [x] prompt (assert if unknown model)
+  - [x] debounce time
+  - [x] pull model if missing
+  - [x] show progress
+  - [ ] keep n suggestion blocks in memory
+  - [ ] ollama params
+  - [ ] ~~commands model~~ (aborted, partly due to fim models not working for chatting)
+- [x] check if model is listed in ollama api
+- [x] pull model if not listed (behind option)
+- [x] replace unix sleep with async job
+- [x] accept word
+- [x] avoid adding newline on accept if no next suggestion
+- [x] store context line number to avoid rerendering same suggestion on other lines
+- [ ] when accepting word that is whitespace only, skip to next word
+- [ ] add more context to prompt
+  - [ ] opened splits outlines
+  - [ ] opened tabs outlines
+  - [ ] opened buffers outlines
+  - [ ] lsp info
+  - [ ] imported files outlines
+- [ ] ~~commands~~ decided to let other plugins handle this behavior as it needs an other model and prompt engineering (not the point of this specific plugin to start with)
+  - [x] ~~describe (wip)~~
+  - [ ] ~~refactor~~
+  - [ ] ~~comment~~
+  - [ ] ~~chat~~
+  - [ ] ~~commit msg (using git diff --staged + conventional commit rules)~~
