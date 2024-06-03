@@ -47,7 +47,7 @@
   - [ ] lsp info
   - [ ] imported files outlines
 - [ ] ~~commands~~ decided to let other plugins handle this behavior as it needs an other model and prompt engineering (not the point of this specific plugin to start with)
-  - [x] ~~describe (wip)~~
+  - [x] ~~describe~~
   - [ ] ~~refactor~~
   - [ ] ~~comment~~
   - [ ] ~~chat~~
