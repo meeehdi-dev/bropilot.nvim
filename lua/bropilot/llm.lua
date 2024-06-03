@@ -286,7 +286,13 @@ end
 
 function M.suggest()
   if not ready then
-    M.init(M.opts, M.suggest)
+    M.init(M.opts, function()
+      local mode = vim.api.nvim_get_mode()
+
+      if mode == "i" or mode == "r" then
+        M.suggest()
+      end
+    end)
     return
   end
 
