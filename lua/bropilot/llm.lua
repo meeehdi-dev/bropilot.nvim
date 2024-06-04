@@ -66,7 +66,10 @@ local function do_suggest()
   local row = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
 
-  local prefix, suffix = util.get_context()
+  local cursor_line = util.get_cursor()
+
+  local prefix = util.join(M.get_lines(0, cursor_line))
+  local suffix = util.join(M.get_lines(cursor_line))
 
   context_line = current_line
   context_row = row

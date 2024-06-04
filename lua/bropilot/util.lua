@@ -40,16 +40,6 @@ function M.join(array, separator)
   return table.concat(array, separator)
 end
 
----@return string, string
-function M.get_context()
-  local cursor_line = M.get_cursor()
-
-  local prefix = M.join(M.get_lines(0, cursor_line))
-  local suffix = M.join(M.get_lines(cursor_line))
-
-  return prefix, suffix
-end
-
 ---@return number, number
 function M.get_pos()
   return vim.fn.line(".") - 1, vim.fn.col(".") - 1
