@@ -87,8 +87,12 @@ local function do_suggest()
       model = M.opts.model,
       prompt = get_prompt(prefix, suffix),
     }),
-    callback = function()
+    callback = function(data)
       util.finish_progress(suggestion_progress_handle)
+      local body = vim.json.decode(data.body)
+      if body.error then
+        vim.notify(body.error, vim.log.levels.ERROR)
+      end
     end,
     on_error = function(err)
       if err.code ~= nil then
