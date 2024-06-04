@@ -30,9 +30,9 @@
   - [x] debounce time
   - [x] pull model if missing
   - [x] show progress
-  - [ ] keep n suggestion blocks in memory
+  - [x] keep n suggestion blocks in memory
   - [ ] ollama params
-  - [ ] ~~commands model~~ (aborted, partly due to fim models not working for chatting)
+  - [x] ~~commands model~~ (aborted, partly due to fim models not working for chatting)
 - [x] check if model is listed in ollama api
 - [x] pull model if not listed (behind option)
 - [x] replace unix sleep with async job
@@ -46,9 +46,9 @@
   - [ ] opened buffers outlines
   - [ ] lsp info
   - [ ] imported files outlines
-- [ ] ~~commands~~ decided to let other plugins handle this behavior as it needs an other model and prompt engineering (not the point of this specific plugin to start with)
+- [x] ~~commands~~ decided to let other plugins handle this behavior as it needs an other model and prompt engineering (not the point of this specific plugin to start with)
   - [x] ~~describe~~
-  - [ ] ~~refactor~~
-  - [ ] ~~comment~~
-  - [ ] ~~chat~~
-  - [ ] ~~commit msg (using git diff --staged + conventional commit rules)~~
+  - [x] ~~refactor~~
+  - [x] ~~comment~~
+  - [x] ~~chat~~
+  - [x] ~~commit msg (using git diff --staged + conventional commit rules)~~

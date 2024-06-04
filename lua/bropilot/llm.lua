@@ -17,7 +17,7 @@ local initializing = false
 ---@type uv_timer_t | nil
 local debounce_timer = nil
 
----@alias Options {model: string, prompt: { prefix: string, suffix: string, middle: string }, debounce: number, auto_pull: boolean}
+---@alias Options {model: string, prompt: { prefix: string, suffix: string, middle: string }, max_blocks: number, debounce: number, auto_pull: boolean}
 
 local M = {}
 
@@ -38,9 +38,14 @@ local function on_suggestion_data(data)
     return
   end
 
-  local body = vim.json.decode(data)
+  local success, body = pcall(vim.json.decode, data)
+  if not success then
+    util.finish_progress(suggestion_progress_handle)
+    return
+  end
   if body.done then
     util.finish_progress(suggestion_progress_handle)
+    return
   end
 
   suggestion = suggestion .. (body.response or "")
@@ -51,13 +56,16 @@ local function on_suggestion_data(data)
     M.cancel()
     suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
   end
-  -- TODO: use in option (default should be true, bc suggestions can be long af)
-  -- local block_placeholder = "\n\n"
-  -- local _, block = string.find(suggestion, block_placeholder)
-  -- if block then
-  --   M.cancel()
-  --   suggestion = string.sub(suggestion, 0, block - #block_placeholder)
-  -- end
+  if string.find(suggestion, "\n\n") ~= nil and M.opts.max_blocks ~= -1 then
+    local blocks = vim.split(suggestion, "\n\n")
+    if #blocks > M.opts.max_blocks then
+      while #blocks > M.opts.max_blocks do
+        table.remove(blocks, #blocks)
+      end
+      suggestion = util.join(blocks, "\n\n")
+      M.cancel()
+    end
+  end
 
   M.render_suggestion()
 end
@@ -384,7 +392,6 @@ function M.accept_word()
   end
 end
 
--- TODO: refactor
 function M.accept_line()
   if #suggestion == 0 then
     return
