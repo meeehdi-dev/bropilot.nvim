@@ -366,9 +366,9 @@ function M.accept_word()
       string.sub(context_line .. suggestion_lines[1], end_ + 1)
   end
 
-  local _, word_end = string.find(suggestion_lines[1], "%s")
+  local _, word_end = string.find(suggestion_lines[1], "[^%s]%s")
   if word_end ~= nil then
-    local suggestion_word = string.sub(suggestion_lines[1], 1, word_end)
+    local suggestion_word = string.sub(suggestion_lines[1], 1, word_end - 1)
 
     util.set_lines(row - 1, row, { current_line .. suggestion_word })
     util.set_cursor(row, #(current_line .. suggestion_word))

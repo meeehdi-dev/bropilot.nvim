@@ -39,7 +39,7 @@
 - [x] accept word
 - [x] avoid adding newline on accept if no next suggestion
 - [x] store context line number to avoid rerendering same suggestion on other lines
-- [ ] when accepting word that is whitespace only, skip to next word
+- [x] when accepting word that is whitespace only, skip to next word
 - [ ] add more context to prompt
   - [ ] opened splits outlines
   - [ ] opened tabs outlines
