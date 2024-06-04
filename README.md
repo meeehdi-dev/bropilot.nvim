@@ -29,7 +29,8 @@ systemctl status ollama
 Here is the default configuration.
 
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
-- `prompt` is an object defining the prefix, suffix and middle keywords for FIM
+- `model_params` is a table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
+- `prompt` is a table defining the prefix, suffix and middle keywords for FIM
 - `max_blocks` is a number that limits the suggested blocks count (-1 for unlimited)
 - `debounce` is a number in milliseconds
 - `auto_pull` is a boolean that allows bro to pull the model if not listed in ollama api
@@ -37,6 +38,22 @@ Here is the default configuration.
 ```lua
 require('bropilot').setup({
   model = "codegemma:2b-code",
+  model_params = {
+    -- https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
+    mirostat = 0,
+    mirostat_eta = 0.1,
+    mirostat_tau = 5.0,
+    num_ctx = 2048,
+    repeat_last_n = 64,
+    repeat_penalty = 1.1,
+    temperature = 0.8,
+    seed = 0,
+    stop = {},
+    tfs_z = 1,
+    num_predict = 128,
+    top_k = 40,
+    top_p = 0.9,
+  },
   prompt = { -- FIM prompt for codegemma
     prefix = "<|fim_prefix|>",
     suffix = "<|fim_suffix|>",
