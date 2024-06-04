@@ -18,12 +18,12 @@
 - [x] some lua callbacks in async process, need to use scheduler (async util function)
 - [x] wait for model to be ready before trying to suggest (does ollama api provide that info? -> using preload)
 - [x] check that suggestion is created after model finishes preload
-- [ ] notify on ollama api errors
+- [x] notify on ollama api errors
 - [x] keep subsequent suggestions in memory
 - [x] accepting block resets suggestions
 - [x] refactor everything
 - [x] fix: keep same suggestion when partially accepting
-- [ ] custom init options
+- [x] custom init options
   - [x] model
   - [x] ~~tag~~
   - [x] prompt (assert if unknown model)
@@ -31,7 +31,7 @@
   - [x] pull model if missing
   - [x] show progress
   - [x] keep n suggestion blocks in memory
-  - [ ] ollama params
+  - [x] ollama params
   - [x] ~~commands model~~ (aborted, partly due to fim models not working for chatting)
 - [x] check if model is listed in ollama api
 - [x] pull model if not listed (behind option)
