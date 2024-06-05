@@ -92,10 +92,11 @@ local function do_suggest()
     }),
     callback = function(data)
       util.finish_progress(suggestion_progress_handle)
-      local body = vim.json.decode(data.body)
-      if body.error then
+      local success, body = pcall(vim.json.decode, data.body)
+      if success and body.error then
         vim.notify(body.error, vim.log.levels.ERROR)
       end
+      -- else this means we force-cancelled suggestion
     end,
     on_error = function(err)
       if err.code ~= nil then
