@@ -6,22 +6,6 @@ local M = {}
 ---@type Options
 M.opts = {
   model = "codegemma:2b-code",
-  model_params = {
-    -- https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
-    mirostat = 0,
-    mirostat_eta = 0.1,
-    mirostat_tau = 5.0,
-    num_ctx = 2048,
-    repeat_last_n = 64,
-    repeat_penalty = 1.1,
-    temperature = 0.8,
-    seed = 0,
-    stop = {},
-    tfs_z = 1,
-    num_predict = 128,
-    top_k = 40,
-    top_p = 0.9,
-  },
   prompt = {
     prefix = "<|fim_prefix|>",
     suffix = "<|fim_suffix|>",

@@ -17,9 +17,9 @@ local initializing = false
 ---@type uv_timer_t | nil
 local debounce_timer = nil
 
----@alias ModelParams { mirostat: number, mirostat_eta: number, mirostat_tau: number, num_ctx: number, repeat_last_n: number, repeat_penalty: number, temperature: number, seed: number, stop: number[], tfs_z: number, num_predict: number, top_k: number, top_p: number }
+---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: number[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
----@alias Options { model: string, model_params: ModelParams, prompt: ModelPrompt, max_blocks: number, debounce: number, auto_pull: boolean }
+---@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, max_blocks: number, debounce: number, auto_pull: boolean }
 
 local M = {}
 
