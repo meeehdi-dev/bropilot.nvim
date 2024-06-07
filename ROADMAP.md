@@ -40,12 +40,13 @@
 - [x] avoid adding newline on accept if no next suggestion
 - [x] store context line number to avoid rerendering same suggestion on other lines
 - [x] when accepting word that is whitespace only, skip to next word
-- [ ] add more context to prompt
-  - [ ] opened splits outlines
-  - [ ] opened tabs outlines
-  - [ ] opened buffers outlines
-  - [ ] lsp info
-  - [ ] imported files outlines
+- [ ] no suggest in cmd or other mode
+- [ ] handle suggest in the middle of line
+- [ ] add more context to prompt opened buffers outlines (lsp symbols) with types info (lsp signatures) -- contains all of below info
+  - [ ] ~~opened splits outlines~~
+  - [ ] ~~opened tabs outlines~~
+  - [ ] ~~lsp info~~
+  - [ ] ~~imported files outlines~~
 - [x] ~~commands~~ decided to let other plugins handle this behavior as it needs an other model and prompt engineering (not the point of this specific plugin to start with)
   - [x] ~~describe~~
   - [x] ~~refactor~~
