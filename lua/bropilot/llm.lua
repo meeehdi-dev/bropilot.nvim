@@ -432,7 +432,7 @@ function M.accept_line()
   end
 
   util.set_lines(row - 1, row, next_lines)
-  util.set_cursor(row + #next_lines - 1, #start_of_next_line)
+  util.set_cursor(row + #next_lines - 1, #next_lines[1])
 
   table.remove(suggestion_lines, 1)
   suggestion = util.join(suggestion_lines, "\n")
