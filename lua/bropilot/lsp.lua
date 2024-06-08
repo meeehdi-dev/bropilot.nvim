@@ -53,7 +53,6 @@ function M.get_buffer_hover(buf_id, cb)
   end)
 end
 
---- @return nil
 function M.get_symbol_hover(buf_id, line, character, cb)
   vim.lsp.buf_request(buf_id, "textDocument/hover", {
     textDocument = vim.lsp.util.make_text_document_params(0),
