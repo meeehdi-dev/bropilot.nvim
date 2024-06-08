@@ -350,7 +350,7 @@ function M.get_context_row()
 end
 
 function M.accept_word()
-  if #suggestion == 0 then
+  if suggestion == "" then
     return
   end
 
@@ -401,7 +401,7 @@ function M.accept_word()
 end
 
 function M.accept_line()
-  if #suggestion == 0 then
+  if suggestion == "" then
     return
   end
 
