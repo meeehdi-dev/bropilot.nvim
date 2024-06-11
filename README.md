@@ -31,7 +31,6 @@ Here is the default configuration.
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
 - `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
 - `prompt` is a table defining the prefix, suffix and middle keywords for FIM
-- `max_blocks` is a number that limits the suggested blocks count (-1 for unlimited)
 - `debounce` is a number in milliseconds
 - `auto_pull` is a boolean that allows bro to pull the model if not listed in ollama api
 
@@ -58,8 +57,7 @@ require('bropilot').setup({
     suffix = "<|fim_suffix|>",
     middle = "<|fim_middle|>",
   },
-  max_blocks = 1,
-  debounce = 1000,
+  debounce = 100,
   auto_pull = true,
 })
 ```

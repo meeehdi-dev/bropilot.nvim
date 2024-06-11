@@ -19,7 +19,7 @@ local debounce_timer = nil
 
 ---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: number[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
----@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, max_blocks: number, debounce: number, auto_pull: boolean }
+---@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, auto_pull: boolean }
 
 local M = {}
 
@@ -57,16 +57,6 @@ local function on_suggestion_data(data)
   if eot then
     M.cancel()
     suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
-  end
-  if string.find(suggestion, "\n\n") ~= nil and M.opts.max_blocks ~= -1 then
-    local blocks = vim.split(suggestion, "\n\n")
-    if #blocks > M.opts.max_blocks then
-      while #blocks > M.opts.max_blocks do
-        table.remove(blocks, #blocks)
-      end
-      suggestion = util.join(blocks, "\n\n")
-      M.cancel()
-    end
   end
 
   M.render_suggestion()
@@ -448,12 +438,17 @@ function M.accept_block()
 
   local blocks = vim.split(suggestion, "\n\n")
   local block = blocks[1]
+  local next = 2
+  while blocks[next] ~= nil and string.find(blocks[next], "%s") == 1 do
+    block = block .. "\n\n" .. blocks[next]
+    next = next + 1
+  end
 
   local row = util.get_cursor()
   local suggestion_lines = vim.split(block, "\n")
   suggestion_lines[1] = context_line .. suggestion_lines[1]
 
-  if blocks[2] ~= nil then
+  if blocks[next] ~= nil then
     table.insert(suggestion_lines, "")
     table.insert(suggestion_lines, "")
   end
