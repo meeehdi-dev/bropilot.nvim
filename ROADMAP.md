@@ -42,11 +42,11 @@
 - [x] when accepting word that is whitespace only, skip to next word
 - [ ] no suggest in cmd or other mode
 - [ ] handle suggest in the middle of line
-- [ ] add more context to prompt opened buffers outlines (lsp symbols) with types info (lsp signatures) -- contains all of below info
-  - [ ] ~~opened splits outlines~~
-  - [ ] ~~opened tabs outlines~~
-  - [ ] ~~lsp info~~
-  - [ ] ~~imported files outlines~~
+- [x] ~~add more context to prompt opened buffers outlines (lsp symbols) with types info (lsp signatures) -- contains all of below info~~ doesn't work (llm doesn't undertstand the markdown, and even with just adding opened buffers as context, it starts hallucinating)
+  - [x] ~~opened splits outlines~~
+  - [x] ~~opened tabs outlines~~
+  - [x] ~~lsp info~~
+  - [x] ~~imported files outlines~~
 - [x] ~~commands~~ decided to let other plugins handle this behavior as it needs an other model and prompt engineering (not the point of this specific plugin to start with)
   - [x] ~~describe~~
   - [x] ~~refactor~~
