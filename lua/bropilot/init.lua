@@ -17,17 +17,29 @@ M.opts = {
 
 vim.api.nvim_create_autocmd({ "InsertEnter" }, {
   callback = function()
+    local row, col = util.get_cursor()
+    local current_line = util.get_lines(row - 1, row)[1]
+
+    if col < #current_line then
+      return
+    end
+
     llm.suggest()
   end,
 })
 
 vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
   callback = function()
-    local row = util.get_cursor()
+    local row, col = util.get_cursor()
+    local current_line = util.get_lines(row - 1, row)[1]
+
+    if col < #current_line then
+      return
+    end
+
     local context_row = llm.get_context_row()
 
     if row == context_row then
-      local current_line = util.get_lines(row - 1, row)[1]
       local context_line = llm.get_context_line()
 
       local current_suggestion = llm.get_suggestion()
