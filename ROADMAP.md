@@ -40,7 +40,7 @@
 - [x] avoid adding newline on accept if no next suggestion
 - [x] store context line number to avoid rerendering same suggestion on other lines
 - [x] when accepting word that is whitespace only, skip to next word
-- [ ] no suggest in cmd or other mode
+- [x] no suggest in cmd or other mode
 - [x] handle suggest in the middle of line
 - [x] ~~add more context to prompt opened buffers outlines (lsp symbols) with types info (lsp signatures) -- contains all of below info~~ doesn't work (llm doesn't undertstand the markdown, and even with just adding opened buffers as context, it starts hallucinating)
   - [x] ~~opened splits outlines~~

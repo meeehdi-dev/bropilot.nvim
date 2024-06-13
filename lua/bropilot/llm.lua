@@ -293,14 +293,31 @@ function M.render_suggestion()
   util.render_virtual_text(suggestion_lines)
 end
 
+--- @return boolean
+local function can_suggest()
+  local mode = vim.api.nvim_get_mode()
+  local mode_ok = false
+  if mode.mode == "i" or mode.mode == "r" then
+    mode_ok = true
+  end
+  local buf = vim.api.nvim_get_current_buf()
+  local buf_name = vim.api.nvim_buf_get_name(buf)
+  local buf_ok = buf_name ~= ""
+  return mode_ok and buf_ok
+end
+
 function M.suggest()
+  if not can_suggest() then
+    return
+  end
+
   if not ready then
     M.init(M.opts, function()
-      local mode = vim.api.nvim_get_mode()
-
-      if mode == "i" or mode == "r" then
-        M.suggest()
+      if not can_suggest() then
+        return
       end
+
+      M.suggest()
     end)
     return
   end
