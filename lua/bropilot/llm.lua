@@ -357,36 +357,17 @@ function M.accept_word()
       string.sub(context_line .. suggestion_lines[1], end_ + 1)
   end
 
+  -- TODO: erase suggestion_lines[1] on each word accept + prepare next line when == ""
+
   local _, word_end = string.find(suggestion_lines[1], "[^%s]%s")
+  if word_end == nil then
+    word_end = #suggestion_lines[1] + 1
+  end
   if word_end ~= nil then
     local suggestion_word = string.sub(suggestion_lines[1], 1, word_end - 1)
 
     util.set_lines(row - 1, row, { current_line .. suggestion_word })
     util.set_cursor(row, #(current_line .. suggestion_word))
-  else
-    local start_of_next_line = ""
-    local next_line = suggestion_lines[2]
-    if next_line ~= nil then
-      local _, next_char_end = string.find(next_line, "[^%s]")
-      if next_char_end ~= nil then
-        start_of_next_line = string.sub(next_line, 1, next_char_end - 1)
-        suggestion_lines[2] =
-          string.sub(suggestion_lines[2], #start_of_next_line + 1)
-      end
-    end
-
-    util.set_lines(
-      row - 1,
-      row,
-      { current_line .. suggestion_lines[1], start_of_next_line }
-    )
-    util.set_cursor(row + 1, #start_of_next_line)
-
-    table.remove(suggestion_lines, 1)
-    suggestion = util.join(suggestion_lines, "\n")
-
-    context_line = start_of_next_line
-    context_row = row + 1
   end
 end
 
