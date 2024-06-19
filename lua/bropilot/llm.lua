@@ -385,11 +385,12 @@ function M.accept_word()
     context_line = accepted
   end
   if word_end == nil then
-    word_end = #(context_line .. suggestion_lines[1]) + 1
-
     context_line = context_line .. suggestion_lines[1]
 
-    table.remove(suggestion_lines, 1)
+    util.set_lines(row - 1, row, { context_line })
+    util.set_cursor(row, #context_line)
+
+    suggestion_lines[1] = ""
     suggestion = util.join(suggestion_lines, "\n")
   end
 end
