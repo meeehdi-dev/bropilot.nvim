@@ -57,7 +57,7 @@ require('bropilot').setup({
     suffix = "<|fim_suffix|>",
     middle = "<|fim_middle|>",
   },
-  debounce = 100,
+  debounce = 1000,
   auto_pull = true,
 })
 ```
@@ -130,7 +130,3 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     },
   }
 ```
-
-## Roadmap
-
-Roadmap available at [ROADMAP.md](https://github.com/meeehdi-dev/bropilot.nvim/blob/main/ROADMAP.md)
