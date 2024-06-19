@@ -363,12 +363,10 @@ function M.accept_word()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
-  local row = util.get_cursor()
-
   local next_lines = {}
 
+  local row = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
-
   if suggestion_lines[1] == "" then
     context_line = ""
     table.remove(suggestion_lines, 1)
@@ -377,38 +375,29 @@ function M.accept_word()
     current_line = ""
   end
 
-  local _, word_end = string.find(
-    context_line .. suggestion_lines[1],
-    "[^%s]%s",
-    #current_line + 1
-  )
+  local current_suggestion = context_line .. suggestion_lines[1]
+
+  local _, word_end =
+    string.find(current_suggestion, "[^%s]%s", #current_line + 1)
   if word_end ~= nil then
-    local accepted =
-      string.sub(context_line .. suggestion_lines[1], 1, word_end - 1)
+    suggestion_lines[1] = string.sub(current_suggestion, word_end)
 
-    table.insert(next_lines, accepted)
-
-    util.set_lines(row - 1, row, next_lines)
-    util.set_cursor(row + #next_lines - 1, #accepted)
-
-    suggestion_lines[1] =
-      string.sub(context_line .. suggestion_lines[1], #accepted + 1)
-    suggestion = util.join(suggestion_lines, "\n")
-
-    context_line = accepted
+    current_suggestion = string.sub(current_suggestion, 1, word_end - 1)
   end
   if word_end == nil then
-    context_line = context_line .. suggestion_lines[1]
     context_row = context_row + 1
 
-    table.insert(next_lines, context_line)
-
-    util.set_lines(row - 1, row, next_lines)
-    util.set_cursor(row + #next_lines - 1, #context_line)
-
     suggestion_lines[1] = ""
-    suggestion = util.join(suggestion_lines, "\n")
   end
+
+  context_line = current_suggestion
+
+  table.insert(next_lines, current_suggestion)
+
+  util.set_lines(row - 1, row, next_lines)
+  util.set_cursor(row + #next_lines - 1, #current_suggestion)
+
+  suggestion = util.join(suggestion_lines, "\n")
 end
 
 function M.accept_line()
