@@ -365,26 +365,32 @@ function M.accept_word()
 
   local row = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
-  local _, end_ = string.find(
-    vim.pesc(context_line .. suggestion_lines[1]),
-    vim.pesc(current_line)
+
+  local _, word_end = string.find(
+    context_line .. suggestion_lines[1],
+    "[^%s]%s",
+    #current_line + 1
   )
-  if end_ ~= nil then
-    suggestion_lines[1] =
-      string.sub(context_line .. suggestion_lines[1], end_ + 1)
-  end
-
-  -- TODO: erase suggestion_lines[1] on each word accept + prepare next line when == ""
-
-  local _, word_end = string.find(suggestion_lines[1], "[^%s]%s")
-  if word_end == nil then
-    word_end = #suggestion_lines[1] + 1
-  end
   if word_end ~= nil then
-    local suggestion_word = string.sub(suggestion_lines[1], 1, word_end - 1)
+    local accepted =
+      string.sub(context_line .. suggestion_lines[1], 1, word_end - 1)
 
-    util.set_lines(row - 1, row, { current_line .. suggestion_word })
-    util.set_cursor(row, #(current_line .. suggestion_word))
+    util.set_lines(row - 1, row, { accepted })
+    util.set_cursor(row, #accepted)
+
+    suggestion_lines[1] =
+      string.sub(context_line .. suggestion_lines[1], #accepted + 1)
+    suggestion = util.join(suggestion_lines, "\n")
+
+    context_line = accepted
+  end
+  if word_end == nil then
+    word_end = #(context_line .. suggestion_lines[1]) + 1
+
+    context_line = context_line .. suggestion_lines[1]
+
+    table.remove(suggestion_lines, 1)
+    suggestion = util.join(suggestion_lines, "\n")
   end
 end
 
