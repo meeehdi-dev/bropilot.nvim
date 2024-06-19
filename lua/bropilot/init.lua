@@ -11,7 +11,7 @@ M.opts = {
     suffix = "<|fim_suffix|>",
     middle = "<|fim_middle|>",
   },
-  debounce = 100,
+  debounce = 1000,
   auto_pull = true,
 }
 
