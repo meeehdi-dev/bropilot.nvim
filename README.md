@@ -74,15 +74,6 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       "j-hui/fidget.nvim", -- optional
     },
     config = true, -- setup with default options
-    keys = {
-      {
-        "<Tab>",
-        function()
-          require("bropilot").accept_block()
-        end,
-        mode = "i",
-      },
-    },
   }
   -- or
   {
@@ -105,28 +96,5 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     config = function (_, opts)
         require("bropilot").setup(opts)
     end,
-    keys = {
-      {
-        "<C-Right>",
-        function()
-          require("bropilot").accept_word()
-        end,
-        mode = "i",
-      },
-      {
-        "<M-Right>",
-        function()
-          require("bropilot").accept_line()
-        end,
-        mode = "i",
-      },
-      {
-        "<Tab>",
-        function()
-          require("bropilot").accept_block()
-        end,
-        mode = "i",
-      },
-    },
   }
 ```
