@@ -356,9 +356,10 @@ function M.get_context_row()
   return context_row
 end
 
+--- @return boolean success true if successful
 function M.accept_word()
   if suggestion == "" then
-    return
+    return false
   end
 
   local suggestion_lines = vim.split(suggestion, "\n")
@@ -398,11 +399,14 @@ function M.accept_word()
   util.set_cursor(row + #next_lines - 1, #current_suggestion)
 
   suggestion = util.join(suggestion_lines, "\n")
+
+  return true
 end
 
+--- @return boolean success true if successful
 function M.accept_line()
   if suggestion == "" then
-    return
+    return false
   end
 
   local suggestion_lines = vim.split(suggestion, "\n")
@@ -427,11 +431,14 @@ function M.accept_line()
 
   suggestion_lines[1] = ""
   suggestion = util.join(suggestion_lines, "\n")
+
+  return true
 end
 
+--- @return boolean success true if successful
 function M.accept_block()
   if suggestion == "" then
-    return
+    return false
   end
 
   local blocks = vim.split(suggestion, "\n\n")
@@ -460,6 +467,8 @@ function M.accept_block()
   suggestion = string.sub(suggestion, #block + 2 + 1)
   context_line = suggestion_lines[#suggestion_lines]
   context_row = row - 1 + #suggestion_lines
+
+  return true
 end
 
 return M

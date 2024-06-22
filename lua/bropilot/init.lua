@@ -1,5 +1,6 @@
 local llm = require("bropilot.llm")
 local util = require("bropilot.util")
+local keymap = require("bropilot.keymap")
 
 local M = {}
 
@@ -74,33 +75,9 @@ vim.api.nvim_create_autocmd({ "InsertLeave" }, {
 function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 
-  vim.keymap.set("i", "<C-Right>", function()
-    local suggestion = llm.get_suggestion()
-    if suggestion == "" then
-      local key = vim.api.nvim_replace_termcodes("<C-Right>", true, false, true)
-      vim.api.nvim_feedkeys(key, "n", true)
-      return
-    end
-    llm.accept_word()
-  end, { noremap = true })
-  vim.keymap.set("i", "<S-Right>", function()
-    local suggestion = llm.get_suggestion()
-    if suggestion == "" then
-      local key = vim.api.nvim_replace_termcodes("<S-Right>", true, false, true)
-      vim.api.nvim_feedkeys(key, "n", true)
-      return
-    end
-    llm.accept_line()
-  end, { noremap = true })
-  vim.keymap.set("i", "<Tab>", function()
-    local suggestion = llm.get_suggestion()
-    if suggestion == "" then
-      local key = vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
-      vim.api.nvim_feedkeys(key, "n", true)
-      return
-    end
-    llm.accept_block()
-  end, { noremap = true })
+  keymap.set("<C-Right>", llm.accept_word)
+  keymap.set("<M-Right>", llm.accept_line)
+  keymap.set("<Tab>", llm.accept_block)
 
   -- setup options (model, prompt, keep_alive, params, etc...)
   llm.init(M.opts, function()
