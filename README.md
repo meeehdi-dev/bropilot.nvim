@@ -33,6 +33,7 @@ Here is the default configuration.
 - `prompt` is a table defining the prefix, suffix and middle keywords for FIM
 - `debounce` is a number in milliseconds
 - `auto_pull` is a boolean that allows bro to pull the model if not listed in ollama api
+- `keymap` is a table to set the different keymap shortcuts
 
 ```lua
 require('bropilot').setup({
@@ -59,6 +60,11 @@ require('bropilot').setup({
   },
   debounce = 1000,
   auto_pull = true,
+  keymap = {
+    accept_word = "<C-Right>",
+    accept_line = "<S-Right>",
+    accept_block = "<Tab>",
+  },
 })
 ```
 
@@ -92,6 +98,9 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       },
       debounce = 500,
       auto_pull = false,
+      keymap = {
+        accept_line = "<M-Right>",
+      },
     },
     config = function (_, opts)
         require("bropilot").setup(opts)

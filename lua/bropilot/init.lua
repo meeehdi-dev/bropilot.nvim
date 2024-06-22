@@ -14,6 +14,11 @@ M.opts = {
   },
   debounce = 1000,
   auto_pull = true,
+  keymap = {
+    accept_word = "<C-Right>",
+    accept_line = "<S-Right>",
+    accept_block = "<Tab>",
+  },
 }
 
 vim.api.nvim_create_autocmd({ "InsertEnter" }, {
@@ -75,9 +80,9 @@ vim.api.nvim_create_autocmd({ "InsertLeave" }, {
 function M.setup(opts)
   M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
 
-  keymap.set("<C-Right>", llm.accept_word)
-  keymap.set("<M-Right>", llm.accept_line)
-  keymap.set("<Tab>", llm.accept_block)
+  keymap.set(M.opts.keymap.accept_word, llm.accept_word)
+  keymap.set(M.opts.keymap.accept_line, llm.accept_line)
+  keymap.set(M.opts.keymap.accept_block, llm.accept_block)
 
   -- setup options (model, prompt, keep_alive, params, etc...)
   llm.init(M.opts, function()

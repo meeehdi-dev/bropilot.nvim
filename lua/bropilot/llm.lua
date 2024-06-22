@@ -19,7 +19,8 @@ local debounce_timer = nil
 
 ---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: number[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
----@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, auto_pull: boolean }
+---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string }
+---@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, auto_pull: boolean, keymap: KeymapParams }
 
 local M = {}
 
@@ -293,7 +294,7 @@ function M.render_suggestion()
   util.render_virtual_text(suggestion_lines)
 end
 
---- @return boolean
+---@return boolean
 local function can_suggest()
   local mode = vim.api.nvim_get_mode()
   local mode_ok = false
@@ -356,7 +357,7 @@ function M.get_context_row()
   return context_row
 end
 
---- @return boolean success true if successful
+---@return boolean success true if successful
 function M.accept_word()
   if suggestion == "" then
     return false
@@ -403,7 +404,7 @@ function M.accept_word()
   return true
 end
 
---- @return boolean success true if successful
+---@return boolean success true if successful
 function M.accept_line()
   if suggestion == "" then
     return false
@@ -435,7 +436,7 @@ function M.accept_line()
   return true
 end
 
---- @return boolean success true if successful
+---@return boolean success true if successful
 function M.accept_block()
   if suggestion == "" then
     return false
