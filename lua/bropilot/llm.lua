@@ -371,6 +371,7 @@ function M.accept_word()
   local current_line = util.get_lines(row - 1, row)[1]
   if suggestion_lines[1] == "" then
     context_line = ""
+    context_row = context_row + 1
     table.remove(suggestion_lines, 1)
 
     table.insert(next_lines, util.get_lines(row - 1, row)[1])
@@ -387,8 +388,6 @@ function M.accept_word()
     current_suggestion = string.sub(current_suggestion, 1, word_end - 1)
   end
   if word_end == nil then
-    context_row = context_row + 1
-
     suggestion_lines[1] = ""
   end
 
@@ -418,13 +417,13 @@ function M.accept_line()
 
   if suggestion_lines[1] == "" then
     context_line = ""
+    context_row = context_row + 1
     table.remove(suggestion_lines, 1)
 
     table.insert(next_lines, util.get_lines(row - 1, row)[1])
   end
 
   context_line = context_line .. suggestion_lines[1]
-  context_row = context_row + 1
   table.insert(next_lines, context_line)
 
   util.set_lines(row - 1, row, next_lines)
@@ -442,32 +441,45 @@ function M.accept_block()
     return false
   end
 
+  local row, cursor_col = util.get_cursor()
+
+  local next_lines = {}
+
   local blocks = vim.split(suggestion, "\n\n")
+  if blocks[1] == "" then
+    context_line = ""
+    context_row = context_row + 2
+    table.remove(blocks, 1)
+    table.insert(next_lines, 1, util.get_lines(row - 1, row)[1])
+    table.insert(next_lines, 2, "")
+  end
+
+  local line = util.get_lines(row - 1, row)[1]
+  local col = string.find(line, "[^%s]") or cursor_col
   local block = blocks[1]
   local next = 2
-  while blocks[next] ~= nil and string.find(blocks[next], "%s") == 1 do
+  while
+    blocks[next] ~= nil
+    and blocks[next] ~= ""
+    and string.find(blocks[next], "%s", col) == 1
+  do
     block = block .. "\n\n" .. blocks[next]
     next = next + 1
   end
 
-  local row = util.get_cursor()
-  local suggestion_lines = vim.split(block, "\n")
-  suggestion_lines[1] = context_line .. suggestion_lines[1]
+  local block_lines = vim.split(block, "\n")
+  block_lines[1] = context_line .. block_lines[1]
 
-  if blocks[next] ~= nil then
-    table.insert(suggestion_lines, "")
-    table.insert(suggestion_lines, "")
+  for k,v in pairs(next_lines) do
+    table.insert(block_lines, k, v)
   end
 
-  util.set_lines(row - 1, row, suggestion_lines)
-  util.set_cursor(
-    row - 1 + #suggestion_lines,
-    #suggestion_lines[#suggestion_lines]
-  )
+  util.set_lines(row - 1, row, block_lines)
+  util.set_cursor(row - 1 + #block_lines, #block_lines[#block_lines])
 
-  suggestion = string.sub(suggestion, #block + 2 + 1)
-  context_line = suggestion_lines[#suggestion_lines]
-  context_row = row - 1 + #suggestion_lines
+  suggestion = string.sub(suggestion, #block + #next_lines + 1)
+  context_line = block_lines[#block_lines]
+  context_row = row - 1 + #block_lines
 
   return true
 end
