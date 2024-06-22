@@ -51,7 +51,7 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
       local current_suggestion = llm.get_suggestion()
       local suggestion_lines = vim.split(current_suggestion, "\n")
 
-      local current_line_contains_suggestion = string.find(
+      local current_line_contains_suggestion = context_line .. suggestion_lines[1] == current_line or string.find(
         vim.pesc(context_line .. suggestion_lines[1]),
         vim.pesc(current_line)
       )
