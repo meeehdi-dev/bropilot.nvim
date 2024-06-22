@@ -367,21 +367,20 @@ function M.accept_word()
 
   local next_lines = {}
 
-  local row = util.get_cursor()
-  local current_line = util.get_lines(row - 1, row)[1]
+  local row, col = util.get_cursor()
   if suggestion_lines[1] == "" then
     context_line = ""
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
 
     table.insert(next_lines, util.get_lines(row - 1, row)[1])
-    current_line = ""
+    col = 1
   end
 
   local current_suggestion = context_line .. suggestion_lines[1]
 
   local _, word_end =
-    string.find(current_suggestion, "[^%s]%s", #current_line + 1)
+    string.find(current_suggestion, "[^%s]%s", col + 1)
   if word_end ~= nil then
     suggestion_lines[1] = string.sub(current_suggestion, word_end)
 
