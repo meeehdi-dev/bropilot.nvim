@@ -20,7 +20,7 @@ local debounce_timer = nil
 ---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: number[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
 ---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string }
----@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, auto_pull: boolean, keymap: KeymapParams }
+---@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, auto_pull: boolean, keymap: KeymapParams, ollama_url: string }
 
 local M = {}
 
@@ -75,7 +75,7 @@ local function do_suggest()
   context_line = current_line
   context_row = row
   suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-  suggestion_job = curl.post("http://localhost:11434/api/generate", {
+  suggestion_job = curl.post(M.opts.ollama_url .. "/generate", {
     body = vim.json.encode({
       model = M.opts.model,
       options = M.opts.model_params,
@@ -128,7 +128,7 @@ end
 local function find_model(model, cb)
   local find_progress_handle =
     util.get_progress_handle("Checking model " .. model)
-  local check_job = curl.get("http://localhost:11434/api/tags", {
+  local check_job = curl.get(M.opts.ollama_url .. "/tags", {
     callback = function(data)
       async.util.scheduler(function()
         util.finish_progress(find_progress_handle)
@@ -151,7 +151,7 @@ end
 local function preload_model(model, cb)
   local preload_progress_handle =
     util.get_progress_handle("Preloading " .. model)
-  local preload_job = curl.post("http://localhost:11434/api/generate", {
+  local preload_job = curl.post(M.opts.ollama_url .. "/generate", {
     body = vim.json.encode({
       model = model,
       keep_alive = "10m",
@@ -181,7 +181,7 @@ end
 local function pull_model(model, cb)
   local pull_progress_handle =
     util.get_progress_handle("Pulling model " .. model)
-  local pull_job = curl.post("http://localhost:11434/api/pull", {
+  local pull_job = curl.post(M.opts.ollama_url .. "/pull", {
     body = vim.json.encode({ name = model }),
     callback = function()
       async.util.scheduler(function()

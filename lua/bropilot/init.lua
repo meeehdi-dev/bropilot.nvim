@@ -19,6 +19,7 @@ M.opts = {
     accept_line = "<S-Right>",
     accept_block = "<Tab>",
   },
+  ollama_url = "http://localhost:11434/api"
 }
 
 vim.api.nvim_create_autocmd({ "InsertEnter" }, {
