@@ -45,23 +45,9 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
       return
     end
 
-    local context_row = llm.get_context_row()
-
-    if row == context_row then
-      local context_line = llm.get_context_line()
-
-      local current_suggestion = llm.get_suggestion()
-      local suggestion_lines = vim.split(current_suggestion, "\n")
-
-      local current_line_contains_suggestion = context_line .. suggestion_lines[1] == current_line or string.find(
-        vim.pesc(context_line .. suggestion_lines[1]),
-        vim.pesc(current_line)
-      )
-
-      if current_line_contains_suggestion then
-        llm.render_suggestion()
-        return
-      end
+    if llm.is_context_row(row) and llm.suggestion_contains_context() then
+      llm.render_suggestion()
+      return
     end
 
     llm.cancel()

@@ -301,9 +301,11 @@ local function can_suggest()
   if mode.mode == "i" or mode.mode == "r" then
     mode_ok = true
   end
+
   local buf = vim.api.nvim_get_current_buf()
   local buf_name = vim.api.nvim_buf_get_name(buf)
   local buf_ok = buf_name ~= ""
+
   return mode_ok and buf_ok
 end
 
@@ -342,19 +344,24 @@ function M.suggest()
   end
 end
 
----@return string
-function M.get_suggestion()
-  return suggestion
+---@return boolean
+function M.suggestion_contains_context()
+  local row = util.get_cursor()
+  local current_line = util.get_lines(row - 1, row)[1]
+
+  local suggestion_lines = vim.split(suggestion, "\n")
+
+  return context_line .. suggestion_lines[1] == current_line
+    or string.find(
+        vim.pesc(context_line .. suggestion_lines[1]),
+        vim.pesc(current_line)
+      )
+      ~= nil
 end
 
----@return string
-function M.get_context_line()
-  return context_line
-end
-
----@return number
-function M.get_context_row()
-  return context_row
+---@return boolean
+function M.is_context_row(row)
+  return row == context_row
 end
 
 ---@return boolean success true if successful
@@ -379,8 +386,7 @@ function M.accept_word()
 
   local current_suggestion = context_line .. suggestion_lines[1]
 
-  local _, word_end =
-    string.find(current_suggestion, "[^%s]%s", col + 1)
+  local _, word_end = string.find(current_suggestion, "[^%s]%s", col + 1)
   if word_end ~= nil then
     suggestion_lines[1] = string.sub(current_suggestion, word_end)
 
@@ -469,7 +475,7 @@ function M.accept_block()
   local block_lines = vim.split(block, "\n")
   block_lines[1] = context_line .. block_lines[1]
 
-  for k,v in pairs(next_lines) do
+  for k, v in pairs(next_lines) do
     table.insert(block_lines, k, v)
   end
 
