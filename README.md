@@ -64,6 +64,7 @@ require('bropilot').setup({
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
     accept_block = "<Tab>",
+    resuggest = "<C-Down>",
   },
 })
 ```

@@ -18,6 +18,7 @@ M.opts = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
     accept_block = "<Tab>",
+    resuggest = "<C-Down>",
   },
   ollama_url = "http://localhost:11434/api"
 }
@@ -84,6 +85,12 @@ function M.setup(opts)
   keymap.set(M.opts.keymap.accept_word, llm.accept_word)
   keymap.set(M.opts.keymap.accept_line, llm.accept_line)
   keymap.set(M.opts.keymap.accept_block, llm.accept_block)
+  keymap.set(M.opts.keymap.resuggest, function()
+    llm.cancel()
+    llm.clear()
+    llm.suggest()
+    return true
+  end)
 
   -- setup options (model, prompt, keep_alive, params, etc...)
   llm.init(M.opts, function()
