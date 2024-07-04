@@ -74,13 +74,8 @@ function M.setup(opts)
     return true
   end)
 
-  -- setup options (model, prompt, keep_alive, params, etc...)
   llm.init(M.opts, function()
-    local mode = vim.api.nvim_get_mode()
-
-    if mode == "i" or mode == "r" then
-      llm.suggest()
-    end
+    llm.suggest()
   end)
 end
 
