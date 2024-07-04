@@ -1,6 +1,7 @@
 local curl = require("plenary.curl")
 local async = require("plenary.async")
 local util = require("bropilot.util")
+local virtual_text = require("bropilot.virtual-text")
 
 ---@type job | nil
 local suggestion_job = nil
@@ -117,7 +118,7 @@ function M.cancel()
   end
   util.finish_progress(suggestion_progress_handle)
   suggestion = ""
-  util.clear_virtual_text()
+  virtual_text.clear()
 end
 
 ---@param model string
@@ -266,7 +267,7 @@ end
 
 function M.render_suggestion()
   if suggestion == "" then
-    util.clear_virtual_text()
+    virtual_text.clear()
     return
   end
 
@@ -288,7 +289,7 @@ function M.render_suggestion()
       string.sub(context_line .. suggestion_lines[1], end_ + 1)
   end
 
-  util.render_virtual_text(suggestion_lines)
+  virtual_text.render(suggestion_lines)
 end
 
 ---@return boolean
