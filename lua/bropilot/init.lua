@@ -51,8 +51,6 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
     end
 
     llm.cancel()
-    llm.clear()
-
     llm.suggest()
   end,
 })
@@ -60,7 +58,6 @@ vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
 vim.api.nvim_create_autocmd({ "InsertLeave" }, {
   callback = function()
     llm.cancel()
-    llm.clear()
   end,
 })
 
@@ -73,7 +70,6 @@ function M.setup(opts)
   keymap.set(M.opts.keymap.accept_block, llm.accept_block)
   keymap.set(M.opts.keymap.resuggest, function()
     llm.cancel()
-    llm.clear()
     llm.suggest()
     return true
   end)

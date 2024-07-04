@@ -116,9 +116,6 @@ function M.cancel()
     suggestion_job = nil
   end
   util.finish_progress(suggestion_progress_handle)
-end
-
-function M.clear()
   suggestion = ""
   util.clear_virtual_text()
 end
