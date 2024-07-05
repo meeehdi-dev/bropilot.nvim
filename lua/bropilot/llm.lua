@@ -45,20 +45,25 @@ local function on_suggestion_data(data)
   local success, body = pcall(vim.json.decode, data)
   if not success then
     util.finish_progress(suggestion_progress_handle)
+    suggestion = util.trim(suggestion)
     return
   end
   if body.done then
     util.finish_progress(suggestion_progress_handle)
+    suggestion = util.trim(suggestion)
     return
   end
 
-  suggestion = suggestion .. (body.response or "")
+  if body.response then
+    suggestion = suggestion .. body.response
+  end
 
   local eot_placeholder = "<EOT>"
   local _, eot = string.find(suggestion, eot_placeholder)
   if eot then
     M.cancel()
     suggestion = string.sub(suggestion, 0, eot - #eot_placeholder)
+    suggestion = util.trim(suggestion)
   end
 
   M.render_suggestion()

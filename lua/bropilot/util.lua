@@ -30,7 +30,7 @@ function M.set_lines(start, end_, lines)
   vim.api.nvim_buf_set_lines(0, start, end_, true, lines)
 end
 
----@param array string []
+---@param array string[]
 ---@param separator string | nil
 ---@return string
 function M.join(array, separator)
@@ -38,6 +38,22 @@ function M.join(array, separator)
     separator = "\n"
   end
   return table.concat(array, separator)
+end
+
+---@param text string
+---@return string
+local function get_last_char(text)
+  return string.sub(text, #text, #text)
+end
+
+---@param text string
+function M.trim(text)
+  local last_char = get_last_char(text)
+  while last_char == " " or last_char == "\t" or last_char == "\n" do
+    text = string.sub(text, 1, #text - 1)
+    last_char = get_last_char(text)
+  end
+  return text
 end
 
 ---@return number, number
