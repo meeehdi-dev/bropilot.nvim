@@ -1,4 +1,4 @@
-local has_progress, progress = pcall(require, "fidget.progress")
+local progress = require("fidget.progress")
 
 local M = {}
 ---@return number row, number col Row index & Col index of cursor in current window
@@ -63,10 +63,6 @@ end
 
 ---@param title string
 function M.get_progress_handle(title)
-  if not has_progress then
-    vim.notify("Bropilot: " .. title, vim.log.levels.INFO)
-    return nil
-  end
   return progress.handle.create({
     title = title,
     lsp_client = { name = "bropilot" },
@@ -78,6 +74,24 @@ function M.finish_progress(handle)
   if handle ~= nil then
     handle:finish()
   end
+end
+
+---@return boolean
+function M.is_mode_insert_or_replace()
+  local mode = vim.api.nvim_get_mode()
+  if mode.mode == "i" or mode.mode == "r" then
+    return true
+  end
+
+  return false
+end
+
+---@return boolean
+function M.is_buf_ready()
+  local buf = vim.api.nvim_get_current_buf()
+  local buf_name = vim.api.nvim_buf_get_name(buf)
+
+  return buf_name ~= ""
 end
 
 return M

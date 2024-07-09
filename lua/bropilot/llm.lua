@@ -21,7 +21,7 @@ local debounce_timer = nil
 ---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: number[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
 ---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string, resuggest: string }
----@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, auto_pull: boolean, keymap: KeymapParams, ollama_url: string }
+---@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
 
 local M = {}
 
@@ -259,13 +259,9 @@ function M.init(init_options, cb)
     if found then
       preload_model(M.opts.model, cb)
     else
-      if M.opts.auto_pull then
-        pull_model(M.opts.model, function()
-          preload_model(M.opts.model, cb)
-        end)
-      else
-        vim.notify(M.opts.model .. " not found", vim.log.levels.ERROR)
-      end
+      pull_model(M.opts.model, function()
+        preload_model(M.opts.model, cb)
+      end)
     end
   end)
 end
@@ -297,29 +293,14 @@ function M.render_suggestion()
   virtual_text.render(suggestion_lines)
 end
 
----@return boolean
-local function can_suggest()
-  local mode = vim.api.nvim_get_mode()
-  local mode_ok = false
-  if mode.mode == "i" or mode.mode == "r" then
-    mode_ok = true
-  end
-
-  local buf = vim.api.nvim_get_current_buf()
-  local buf_name = vim.api.nvim_buf_get_name(buf)
-  local buf_ok = buf_name ~= ""
-
-  return mode_ok and buf_ok
-end
-
 function M.suggest()
-  if not can_suggest() then
+  if not util.is_mode_insert_or_replace() or not util.is_buf_ready() then
     return
   end
 
   if not ready then
     M.init(M.opts, function()
-      if not can_suggest() then
+      if not util.is_mode_insert_or_replace() or not util.is_buf_ready() then
         return
       end
 

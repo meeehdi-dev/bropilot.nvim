@@ -32,7 +32,6 @@ Here is the default configuration.
 - `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
 - `prompt` is a table defining the prefix, suffix and middle keywords for FIM
 - `debounce` is a number in milliseconds
-- `auto_pull` is a boolean that allows bro to pull the model if not listed in ollama api
 - `keymap` is a table to set the different keymap shortcuts
 
 ```lua
@@ -59,7 +58,6 @@ require('bropilot').setup({
     middle = "<|fim_middle|>",
   },
   debounce = 1000,
-  auto_pull = true,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
@@ -78,7 +76,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     event = "VeryLazy", -- preload model on start
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "j-hui/fidget.nvim", -- optional
+      "j-hui/fidget.nvim",
     },
     config = true, -- setup with default options
   }
@@ -88,7 +86,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     event = "VeryLazy", -- preload model on start
     dependencies = {
       "nvim-lua/plenary.nvim",
-      -- "j-hui/fidget.nvim", -- optional
+      "j-hui/fidget.nvim",
     },
     opts = {
       model = "starcoder2:3b",
@@ -98,7 +96,6 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
         middle = "<fim_middle>",
       },
       debounce = 500,
-      auto_pull = false,
       keymap = {
         accept_line = "<M-Right>",
       },

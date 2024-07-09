@@ -13,7 +13,6 @@ M.opts = {
     middle = "<|fim_middle|>",
   },
   debounce = 1000,
-  auto_pull = true,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
