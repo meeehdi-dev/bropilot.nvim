@@ -28,7 +28,9 @@ function M.render(lines)
     extmark_opts.virt_lines = virt_lines
   end
 
-  local line, col = util.get_pos()
+  -- no idea why we need to subtract 1 here...
+  local line = vim.fn.line(".") - 1
+  local col = vim.fn.col(".") - 1
 
   extmark_id = vim.api.nvim_buf_set_extmark(0, ns_id, line, col, extmark_opts)
 end

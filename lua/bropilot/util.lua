@@ -56,11 +56,6 @@ function M.trim(text)
   return text
 end
 
----@return number, number
-function M.get_pos()
-  return vim.fn.line(".") - 1, vim.fn.col(".") - 1
-end
-
 ---@param title string
 function M.get_progress_handle(title)
   return progress.handle.create({
@@ -74,24 +69,6 @@ function M.finish_progress(handle)
   if handle ~= nil then
     handle:finish()
   end
-end
-
----@return boolean
-function M.is_mode_insert_or_replace()
-  local mode = vim.api.nvim_get_mode()
-  if mode.mode == "i" or mode.mode == "r" then
-    return true
-  end
-
-  return false
-end
-
----@return boolean
-function M.is_buf_ready()
-  local buf = vim.api.nvim_get_current_buf()
-  local buf_name = vim.api.nvim_buf_get_name(buf)
-
-  return buf_name ~= ""
 end
 
 return M

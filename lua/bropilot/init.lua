@@ -1,5 +1,4 @@
 local llm = require("bropilot.llm")
-local util = require("bropilot.util")
 local keymap = require("bropilot.keymap")
 
 local M = {}
@@ -24,27 +23,13 @@ M.opts = {
 
 vim.api.nvim_create_autocmd({ "InsertEnter" }, {
   callback = function()
-    local row, col = util.get_cursor()
-    local current_line = util.get_lines(row - 1, row)[1]
-
-    if col < #current_line then
-      return
-    end
-
     llm.suggest()
   end,
 })
 
 vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
   callback = function()
-    local row, col = util.get_cursor()
-    local current_line = util.get_lines(row - 1, row)[1]
-
-    if col < #current_line then
-      return
-    end
-
-    if llm.is_context_row(row) and llm.suggestion_contains_context() then
+    if llm.suggestion_contains_context() then
       llm.render_suggestion()
       return
     end

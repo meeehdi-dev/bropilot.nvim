@@ -293,14 +293,37 @@ function M.render_suggestion()
   virtual_text.render(suggestion_lines)
 end
 
+---@return boolean
+local function can_suggest()
+  -- mode is insert or replace
+  local mode = vim.api.nvim_get_mode()
+  if mode.mode ~= "i" and mode.mode ~= "r" then
+    return false
+  end
+
+  -- buffer exists
+  local buf = vim.api.nvim_get_current_buf()
+  local buf_name = vim.api.nvim_buf_get_name(buf)
+  if buf_name == "" then
+    return false
+  end
+
+  -- cursor at end of line
+  if vim.fn.col(".") <= #vim.api.nvim_get_current_line() then
+    return false
+  end
+
+  return true
+end
+
 function M.suggest()
-  if not util.is_mode_insert_or_replace() or not util.is_buf_ready() then
+  if not can_suggest() then
     return
   end
 
   if not ready then
     M.init(M.opts, function()
-      if not util.is_mode_insert_or_replace() or not util.is_buf_ready() then
+      if not can_suggest() then
         return
       end
 
@@ -330,6 +353,10 @@ end
 
 ---@return boolean
 function M.suggestion_contains_context()
+  if vim.fn.line(".") ~= context_row then
+    return false
+  end
+
   local row = util.get_cursor()
   local current_line = util.get_lines(row - 1, row)[1]
 
@@ -341,11 +368,6 @@ function M.suggestion_contains_context()
         vim.pesc(current_line)
       )
       ~= nil
-end
-
----@return boolean
-function M.is_context_row(row)
-  return row == context_row
 end
 
 ---@return boolean success true if successful
