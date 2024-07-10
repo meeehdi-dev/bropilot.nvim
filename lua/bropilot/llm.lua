@@ -70,15 +70,12 @@ local function on_suggestion_data(data)
 end
 
 local function do_suggest()
-  local row = util.get_cursor()
-  local current_line = util.get_lines(row - 1, row)[1]
+  local row = vim.fn.line(".")
 
-  local cursor_line = util.get_cursor()
+  local prefix = util.join(util.get_lines(0, row))
+  local suffix = util.join(util.get_lines(row))
 
-  local prefix = util.join(util.get_lines(0, cursor_line))
-  local suffix = util.join(util.get_lines(cursor_line))
-
-  context_line = current_line
+  context_line = vim.api.nvim_get_current_line()
   context_row = row
   suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   suggestion_job = curl.post(M.opts.ollama_url .. "/generate", {
@@ -274,16 +271,9 @@ function M.render_suggestion()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
-  local row, col = util.get_cursor()
-  local current_line = util.get_lines(row - 1, row)[1]
-
-  if col < #current_line then
-    return
-  end
-
   local _, end_ = string.find(
     vim.pesc(context_line .. suggestion_lines[1]),
-    vim.pesc(current_line)
+    vim.pesc(vim.api.nvim_get_current_line())
   )
   if end_ ~= nil then
     suggestion_lines[1] =
@@ -357,8 +347,7 @@ function M.suggestion_contains_context()
     return false
   end
 
-  local row = util.get_cursor()
-  local current_line = util.get_lines(row - 1, row)[1]
+  local current_line = vim.api.nvim_get_current_line()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
@@ -380,13 +369,13 @@ function M.accept_word()
 
   local next_lines = {}
 
-  local row, col = util.get_cursor()
+  local col = vim.fn.col(".")
   if suggestion_lines[1] == "" then
     context_line = ""
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
 
-    table.insert(next_lines, util.get_lines(row - 1, row)[1])
+    table.insert(next_lines, vim.api.nvim_get_current_line())
     col = 1
   end
 
@@ -406,8 +395,10 @@ function M.accept_word()
 
   table.insert(next_lines, current_suggestion)
 
-  util.set_lines(row - 1, row, next_lines)
-  util.set_cursor(row + #next_lines - 1, #current_suggestion)
+  local line = vim.fn.line(".")
+
+  util.set_lines(line - 1, line, next_lines)
+  util.set_cursor(line + #next_lines - 1, #current_suggestion)
 
   suggestion = util.join(suggestion_lines, "\n")
 
@@ -422,8 +413,6 @@ function M.accept_line()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
-  local row = util.get_cursor()
-
   local next_lines = {}
 
   if suggestion_lines[1] == "" then
@@ -431,14 +420,16 @@ function M.accept_line()
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
 
-    table.insert(next_lines, util.get_lines(row - 1, row)[1])
+    table.insert(next_lines, vim.api.nvim_get_current_line())
   end
 
   context_line = context_line .. suggestion_lines[1]
   table.insert(next_lines, context_line)
 
-  util.set_lines(row - 1, row, next_lines)
-  util.set_cursor(row + #next_lines - 1, #context_line)
+  local line = vim.fn.line(".")
+
+  util.set_lines(line - 1, line, next_lines)
+  util.set_cursor(line + #next_lines - 1, #context_line)
 
   suggestion_lines[1] = ""
   suggestion = util.join(suggestion_lines, "\n")
@@ -452,8 +443,6 @@ function M.accept_block()
     return false
   end
 
-  local row, cursor_col = util.get_cursor()
-
   local next_lines = {}
 
   local blocks = vim.split(suggestion, "\n\n")
@@ -461,12 +450,12 @@ function M.accept_block()
     context_line = ""
     context_row = context_row + 2
     table.remove(blocks, 1)
-    table.insert(next_lines, 1, util.get_lines(row - 1, row)[1])
+    table.insert(next_lines, 1, vim.api.nvim_get_current_line())
     table.insert(next_lines, 2, "")
   end
 
-  local line = util.get_lines(row - 1, row)[1]
-  local col = string.find(line, "[^%s]") or cursor_col
+  local current_line = vim.api.nvim_get_current_line()
+  local col = string.find(current_line, "[^%s]") or vim.fn.col(".")
   local block = blocks[1]
   local next = 2
   while
@@ -485,12 +474,14 @@ function M.accept_block()
     table.insert(block_lines, k, v)
   end
 
-  util.set_lines(row - 1, row, block_lines)
-  util.set_cursor(row - 1 + #block_lines, #block_lines[#block_lines])
+  local line = vim.fn.line(".")
+
+  util.set_lines(line - 1, line, block_lines)
+  util.set_cursor(line - 1 + #block_lines, #block_lines[#block_lines])
 
   suggestion = string.sub(suggestion, #block + #next_lines + 1)
   context_line = block_lines[#block_lines]
-  context_row = row - 1 + #block_lines
+  context_row = line - 1 + #block_lines
 
   return true
 end

@@ -1,11 +1,6 @@
 local progress = require("fidget.progress")
 
 local M = {}
----@return number row, number col Row index & Col index of cursor in current window
-function M.get_cursor()
-  local cursor = vim.api.nvim_win_get_cursor(0)
-  return cursor[1], cursor[2]
-end
 
 ---@param row number
 ---@param col number
