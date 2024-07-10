@@ -8,8 +8,7 @@ Current working models:
 - starcoder2 (3b & 7b)
 
 
-![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/ff18e6c8-691f-48ea-8f71-5f187a35b89a)
-
+![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/3a576c3d-7215-46cc-bfd5-150f33986996)
 
 
 ## Setup
