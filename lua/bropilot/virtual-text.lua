@@ -21,14 +21,20 @@ function M.render(lines)
   if #lines > 1 then
     local virt_lines = {}
     for k, v in ipairs(lines) do
-      if k > 1 then -- skip first line
+      if k > 1 and (k ~= #lines or v ~= "") then -- skip first line, and last line if empty
         table.insert(virt_lines, { { v, "Comment" } })
       end
     end
     extmark_opts.virt_lines = virt_lines
   end
 
-  extmark_id = vim.api.nvim_buf_set_extmark(0, ns_id, vim.fn.line(".") - 1, #vim.api.nvim_get_current_line(), extmark_opts)
+  extmark_id = vim.api.nvim_buf_set_extmark(
+    0,
+    ns_id,
+    vim.fn.line(".") - 1,
+    #vim.api.nvim_get_current_line(),
+    extmark_opts
+  )
 end
 
 function M.clear()
