@@ -272,7 +272,7 @@ function M.render_suggestion()
   local suggestion_lines = vim.split(suggestion, "\n")
 
   local _, end_ = string.find(
-    vim.pesc(context_line .. suggestion_lines[1]),
+    context_line .. suggestion_lines[1],
     vim.pesc(vim.api.nvim_get_current_line())
   )
   if end_ ~= nil then
@@ -351,9 +351,9 @@ function M.suggestion_contains_context()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
-  return context_line .. suggestion_lines[1] == current_line
+  return (context_line .. suggestion_lines[1]) == current_line
     or string.find(
-        vim.pesc(context_line .. suggestion_lines[1]),
+        context_line .. suggestion_lines[1],
         vim.pesc(current_line)
       )
       ~= nil
