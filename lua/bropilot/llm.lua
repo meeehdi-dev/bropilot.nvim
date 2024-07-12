@@ -382,7 +382,7 @@ function M.accept_word()
     table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
 
-  local _, word_end = string.find(current_suggestion, "[^%s]%s", col + 1)
+  local _, word_end = string.find(current_suggestion, "[^%s][%s.]", col + 1)
   if word_end ~= nil then
     suggestion_lines[1] = string.sub(current_suggestion, word_end)
 
