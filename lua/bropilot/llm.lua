@@ -414,23 +414,23 @@ function M.accept_line()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
-  local next_lines = {}
+  local insert_lines = {}
 
   if suggestion_lines[1] == "" then
     context_line = ""
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
 
-    table.insert(next_lines, vim.api.nvim_get_current_line())
+    table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
 
   context_line = context_line .. suggestion_lines[1]
-  table.insert(next_lines, context_line)
+  table.insert(insert_lines, context_line)
 
   local line = vim.fn.line(".")
 
-  util.set_lines(line - 1, line, next_lines)
-  util.set_cursor(line + #next_lines - 1, #context_line)
+  util.set_lines(line - 1, line, insert_lines)
+  util.set_cursor(line + #insert_lines - 1, #context_line)
 
   suggestion_lines[1] = ""
   suggestion = util.join(suggestion_lines, "\n")
