@@ -367,19 +367,20 @@ function M.accept_word()
 
   local suggestion_lines = vim.split(suggestion, "\n")
 
-  local next_lines = {}
+  local current_suggestion = context_line .. suggestion_lines[1]
+
+  local insert_lines = {}
 
   local col = vim.fn.col(".")
   if suggestion_lines[1] == "" then
-    context_line = ""
+    col = 1
+
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
+    current_suggestion = suggestion_lines[1]
 
-    table.insert(next_lines, vim.api.nvim_get_current_line())
-    col = 1
+    table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
-
-  local current_suggestion = context_line .. suggestion_lines[1]
 
   local _, word_end = string.find(current_suggestion, "[^%s]%s", col + 1)
   if word_end ~= nil then
@@ -393,12 +394,12 @@ function M.accept_word()
 
   context_line = current_suggestion
 
-  table.insert(next_lines, current_suggestion)
+  table.insert(insert_lines, current_suggestion)
 
   local line = vim.fn.line(".")
 
-  util.set_lines(line - 1, line, next_lines)
-  util.set_cursor(line + #next_lines - 1, #current_suggestion)
+  util.set_lines(line - 1, line, insert_lines)
+  util.set_cursor(line + #insert_lines - 1, #current_suggestion)
 
   suggestion = util.join(suggestion_lines, "\n")
 
