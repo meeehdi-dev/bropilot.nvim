@@ -150,7 +150,7 @@ local function pull_model(cb)
   pull_job:start()
 end
 
-function M.generate(prompt, cb)
+function M.generate(prefix, suffix, cb)
   local opts = options.get()
 
   suggestion_progress_handle = util.get_progress_handle("Suggesting...")
@@ -158,7 +158,8 @@ function M.generate(prompt, cb)
     body = vim.json.encode({
       model = opts.model,
       options = opts.model_params,
-      prompt = prompt,
+      prompt = prefix,
+      suffix = suffix,
     }),
     on_error = function(err)
       if err.code ~= nil then

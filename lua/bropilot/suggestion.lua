@@ -91,19 +91,6 @@ local function can_get()
   return true
 end
 
----@param prefix string
----@param suffix string
----@return string
-local function get_prompt(prefix, suffix)
-  local opts = options.get()
-
-  return opts.prompt.prefix
-    .. prefix
-    .. opts.prompt.suffix
-    .. suffix
-    .. opts.prompt.middle
-end
-
 function M.get()
   if not can_get() then
     return
@@ -135,9 +122,7 @@ function M.get()
         context_line = vim.api.nvim_get_current_line()
         context_row = row
 
-        local prompt = get_prompt(prefix, suffix)
-
-        ollama.generate(prompt, on_data)
+        ollama.generate(prefix, suffix, on_data)
       end)
     end) == 0
   then
