@@ -35,7 +35,7 @@ Here is the default configuration.
 
 ```lua
 require('bropilot').setup({
-  model = "codegemma:2b-code",
+  model = "codellama:7b-code",
   -- model_params = {
   --   mirostat = 0,
   --   mirostat_eta = 0.1,
@@ -51,10 +51,10 @@ require('bropilot').setup({
   --   top_k = 40,
   --   top_p = 0.9,
   -- },
-  prompt = { -- FIM prompt for codegemma
-    prefix = "<|fim_prefix|>",
-    suffix = "<|fim_suffix|>",
-    middle = "<|fim_middle|>",
+  prompt = { -- FIM prompt for codellama
+    prefix = "<PRE> ",
+    suffix = " <SUF>",
+    middle = " <MID>",
   },
   debounce = 1000,
   keymap = {

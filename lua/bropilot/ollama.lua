@@ -83,10 +83,10 @@ local function pull_model(cb)
     util.get_progress_handle("Pulling model " .. opts.model)
   local pull_job = curl.post(opts.ollama_url .. "/pull", {
     body = vim.json.encode({ name = opts.model }),
-    callback = function()
-      async.util.scheduler(function()
-        util.finish_progress(pull_progress_handle)
-      end)
+    on_error = function(err)
+      if err.code ~= nil then
+        vim.notify(err.message)
+      end
     end,
     stream = function(err, data)
       async.util.scheduler(function()
@@ -160,14 +160,6 @@ function M.generate(prompt, cb)
       options = opts.model_params,
       prompt = prompt,
     }),
-    callback = function(data)
-      util.finish_progress(suggestion_progress_handle)
-      local success, body = pcall(vim.json.decode, data.body)
-      if success and body.error then
-        vim.notify(body.error, vim.log.levels.ERROR)
-      end
-      -- else this means we force-cancelled suggestion
-    end,
     on_error = function(err)
       if err.code ~= nil then
         vim.notify(err.message)

@@ -7,13 +7,13 @@ local M = {}
 
 ---@type Options
 M.opts = {
-  model = "codegemma:2b-code",
+  model = "codellama:7b-code",
   prompt = {
-    prefix = "<|fim_prefix|>",
-    suffix = "<|fim_suffix|>",
-    middle = "<|fim_middle|>",
+    prefix = "<PRE> ",
+    suffix = " <SUF>",
+    middle = " <MID>",
   },
-  debounce = 1000,
+  debounce = 500,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
