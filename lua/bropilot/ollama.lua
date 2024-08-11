@@ -75,6 +75,25 @@ local function preload_model(cb)
   preload_job:start()
 end
 
+-- keep this func as a memento that we can details about model (maybe prefix/suffix? later)
+-- defaults model params should be based on this (esp context length)
+-- local function show_model()
+--   local opts = options.get()
+--
+--   curl.post(opts.ollama_url .. "/show", {
+--     body = vim.json.encode({
+--       name = opts.model,
+--     }),
+--     callback = function(data)
+--       async.util.scheduler(function()
+--         local body = vim.json.decode(data.body)
+--         vim.print(body.model_info)
+--         vim.print(body.model_info["llama.context_length"])
+--       end)
+--     end,
+--   })
+-- end
+
 ---@param cb function | nil
 local function pull_model(cb)
   local opts = options.get()
@@ -212,6 +231,7 @@ function M.init(cb)
   initializing = true
   find_model(function(found)
     if found then
+      -- show_model()
       preload_model(function()
         if init_callback then
           init_callback()
