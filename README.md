@@ -35,7 +35,7 @@ Here is the default configuration.
 
 ```lua
 require('bropilot').setup({
-  model = "codellama:7b-code",
+  model = "starcoder2:3b",
   model_params = {
     num_ctx = 16384,
   },
@@ -55,10 +55,10 @@ require('bropilot').setup({
   --   top_p = 0.9,
   --   min_p = 0.0,
   -- },
-  prompt = { -- FIM prompt for codellama
-    prefix = "<PRE> ",
-    suffix = " <SUF>",
-    middle = " <MID>",
+  prompt = { -- FIM prompt for starcoder2
+    prefix = "<fim_prefix>",
+    suffix = "<fim_suffix>",
+    middle = "<fim_middle>",
   },
   debounce = 1000,
   keymap = {

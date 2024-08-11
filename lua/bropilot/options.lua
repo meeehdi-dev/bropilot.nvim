@@ -7,16 +7,16 @@ local M = {}
 
 ---@type Options
 M.opts = {
-  model = "codellama:7b-code",
+  model = "starcoder2:3b",
   model_params = {
     num_ctx = 16384,
   },
   prompt = {
-    prefix = "<PRE> ",
-    suffix = " <SUF>",
-    middle = " <MID>",
+    prefix = "<fim_prefix>",
+    suffix = "<fim_suffix>",
+    middle = "<fim_middle>",
   },
-  debounce = 500,
+  debounce = 1000,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
