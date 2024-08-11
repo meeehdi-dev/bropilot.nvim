@@ -36,6 +36,9 @@ Here is the default configuration.
 ```lua
 require('bropilot').setup({
   model = "codellama:7b-code",
+  model_params = {
+    num_ctx = 16384,
+  },
   -- model_params = {
   --   mirostat = 0,
   --   mirostat_eta = 0.1,
@@ -50,6 +53,7 @@ require('bropilot').setup({
   --   num_predict = 128,
   --   top_k = 40,
   --   top_p = 0.9,
+  --   min_p = 0.0,
   -- },
   prompt = { -- FIM prompt for codellama
     prefix = "<PRE> ",

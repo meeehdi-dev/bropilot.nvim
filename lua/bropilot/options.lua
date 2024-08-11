@@ -1,4 +1,4 @@
----@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: number[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number }
+---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: number[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number, min_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
 ---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string, resuggest: string }
 ---@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
@@ -8,6 +8,9 @@ local M = {}
 ---@type Options
 M.opts = {
   model = "codellama:7b-code",
+  model_params = {
+    num_ctx = 16384,
+  },
   prompt = {
     prefix = "<PRE> ",
     suffix = " <SUF>",
