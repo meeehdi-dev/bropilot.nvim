@@ -11,9 +11,7 @@ local suggestion_progress_handle = nil
 ---@type job | nil
 local suggestion_job = nil
 
-local M = {}
-
-function M.is_ready()
+local function is_ready()
   return not initializing and ready
 end
 
@@ -169,7 +167,7 @@ local function pull_model(cb)
   pull_job:start()
 end
 
-function M.generate(prompt, cb)
+local function generate(prompt, cb)
   local opts = options.get()
 
   suggestion_progress_handle = util.get_progress_handle("Suggesting...")
@@ -212,7 +210,7 @@ function M.generate(prompt, cb)
   })
 end
 
-function M.cancel()
+local function cancel()
   if suggestion_job then
     suggestion_job:shutdown()
     suggestion_job = nil
@@ -223,7 +221,7 @@ end
 ---@type function | nil
 local init_callback = nil
 ---@param cb function | nil
-function M.init(cb)
+local function init(cb)
   init_callback = cb
   if ready or initializing then
     return
@@ -249,4 +247,9 @@ function M.init(cb)
   end)
 end
 
-return M
+return {
+  cancel = cancel,
+  generate = generate,
+  init = init,
+  is_ready = is_ready,
+}

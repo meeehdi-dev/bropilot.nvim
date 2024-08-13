@@ -12,32 +12,7 @@ local context_row = -1
 ---@type uv_timer_t | nil
 local debounce_timer = nil
 
-local M = {}
-
----@param done boolean
----@param response string
-local function on_data(done, response)
-  if done then
-    return
-  end
-
-  if response then
-    current_suggestion = current_suggestion .. response
-  end
-
-  local eot_placeholder = "<EOT>"
-  local _, eot = string.find(current_suggestion, eot_placeholder)
-  if eot then
-    M.cancel()
-    current_suggestion =
-      string.sub(current_suggestion, 0, eot - #eot_placeholder)
-    current_suggestion = util.trim(current_suggestion)
-  end
-
-  M.render()
-end
-
-function M.cancel()
+local function cancel()
   if debounce_timer then
     debounce_timer:stop()
     debounce_timer:close()
@@ -48,7 +23,7 @@ function M.cancel()
   virtual_text.clear()
 end
 
-function M.render()
+local function render()
   if current_suggestion == "" then
     virtual_text.clear()
     return
@@ -66,6 +41,29 @@ function M.render()
   end
 
   virtual_text.render(suggestion_lines)
+end
+
+---@param done boolean
+---@param response string
+local function on_data(done, response)
+  if done then
+    return
+  end
+
+  if response then
+    current_suggestion = current_suggestion .. response
+  end
+
+  local eot_placeholder = "<EOT>"
+  local _, eot = string.find(current_suggestion, eot_placeholder)
+  if eot then
+    cancel()
+    current_suggestion =
+      string.sub(current_suggestion, 0, eot - #eot_placeholder)
+    current_suggestion = util.trim(current_suggestion)
+  end
+
+  render()
 end
 
 ---@return boolean
@@ -113,14 +111,14 @@ local function get_prompt(prefix, suffix)
     .. opts.prompt.middle
 end
 
-function M.get()
+local function get()
   if not can_get() then
     return
   end
 
   if not ollama.is_ready() then
     ollama.init(function()
-      M.get()
+      get()
     end)
   end
 
@@ -155,7 +153,7 @@ function M.get()
 end
 
 ---@return boolean
-function M.contains_context()
+local function contains_context()
   if vim.fn.line(".") ~= context_row then
     return false
   end
@@ -173,7 +171,7 @@ function M.contains_context()
 end
 
 ---@return boolean success true if successful
-function M.accept_word()
+local function accept_word()
   if current_suggestion == "" then
     return false
   end
@@ -220,7 +218,7 @@ function M.accept_word()
 end
 
 ---@return boolean success true if successful
-function M.accept_line()
+local function accept_line()
   if current_suggestion == "" then
     return false
   end
@@ -252,7 +250,7 @@ function M.accept_line()
 end
 
 ---@return boolean success true if successful
-function M.accept_block()
+local function accept_block()
   if current_suggestion == "" then
     return false
   end
@@ -300,4 +298,12 @@ function M.accept_block()
   return true
 end
 
-return M
+return {
+  accept_block = accept_block,
+  accept_line = accept_line,
+  accept_word = accept_word,
+  cancel = cancel,
+  contains_context = contains_context,
+  get = get,
+  render = render,
+}

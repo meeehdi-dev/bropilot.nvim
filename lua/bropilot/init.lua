@@ -3,8 +3,6 @@ local ollama = require("bropilot.ollama")
 local keymap = require("bropilot.keymap")
 local options = require("bropilot.options")
 
-local M = {}
-
 vim.api.nvim_create_autocmd({ "InsertEnter" }, {
   callback = function()
     suggestion.get()
@@ -29,24 +27,13 @@ vim.api.nvim_create_autocmd({ "InsertLeave" }, {
   end,
 })
 
-local function init_keymaps()
-  local opts = options.get()
-
-  keymap.set(opts.keymap.accept_word, suggestion.accept_word)
-  keymap.set(opts.keymap.accept_line, suggestion.accept_line)
-  keymap.set(opts.keymap.accept_block, suggestion.accept_block)
-  keymap.set(opts.keymap.resuggest, function()
-    suggestion.cancel()
-    suggestion.get()
-    return true
-  end)
-end
-
 ---@param opts Options
-function M.setup(opts)
+local function setup(opts)
   options.set(opts)
-  init_keymaps()
+  keymap.init()
   ollama.init()
 end
 
-return M
+return {
+  setup = setup
+}

@@ -1,8 +1,9 @@
-local M = {}
+local options = require("bropilot.options")
+local suggestion = require("bropilot.suggestion")
 
 ---@param keycode string | nil
 ---@param cb function
-M.set = function(keycode, cb)
+local function set(keycode, cb)
   if keycode == nil or keycode == "" then
     return
   end
@@ -19,4 +20,19 @@ M.set = function(keycode, cb)
   end, { noremap = true })
 end
 
-return M
+local function init()
+  local opts = options.get()
+
+  set(opts.keymap.accept_word, suggestion.accept_word)
+  set(opts.keymap.accept_line, suggestion.accept_line)
+  set(opts.keymap.accept_block, suggestion.accept_block)
+  set(opts.keymap.resuggest, function()
+    suggestion.cancel()
+    suggestion.get()
+    return true
+  end)
+end
+
+return {
+  init = init,
+}

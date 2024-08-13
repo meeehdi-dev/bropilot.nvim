@@ -3,10 +3,8 @@
 ---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string, resuggest: string }
 ---@alias Options { model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
 
-local M = {}
-
 ---@type Options
-M.opts = {
+local options = {
   model = "starcoder2:3b",
   model_params = {
     num_ctx = 16384,
@@ -27,13 +25,16 @@ M.opts = {
 }
 
 ---@param opts Options
-function M.set(opts)
-  M.opts = vim.tbl_deep_extend("force", M.opts, opts or {})
+local function set(opts)
+  options = vim.tbl_deep_extend("force", options, opts or {})
 end
 
 ---@return Options
-function M.get()
-  return M.opts
+local function get()
+  return options
 end
 
-return M
+return {
+  get = get,
+  set = set,
+}
