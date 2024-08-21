@@ -178,7 +178,7 @@ local function generate(prompt, cb)
       prompt = prompt,
     }),
     on_error = function(err)
-      if err.code ~= nil then
+      if err.message ~= nil then
         vim.notify(err.message)
       end
     end,
