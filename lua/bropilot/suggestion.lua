@@ -95,15 +95,6 @@ end
 local function get_prompt(prefix, suffix)
   local opts = options.get()
 
-  local ctx_len = opts.model_params.num_ctx / 2
-
-  if #prefix > ctx_len then
-    prefix = prefix:sub(#prefix - ctx_len, #prefix)
-  end
-  if #suffix > ctx_len then
-    suffix = suffix:sub(1, ctx_len)
-  end
-
   return opts.prompt.prefix
     .. prefix
     .. opts.prompt.suffix
