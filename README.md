@@ -37,7 +37,10 @@ Here is the default configuration.
 require('bropilot').setup({
   model = "starcoder2:3b",
   model_params = {
-    num_ctx = 16384,
+    num_ctx = 2048,
+    num_predict = 64,
+    temperature = 0,
+    stop = { "<file_sep>" },
   },
   -- model_params = {
   --   mirostat = 0,
