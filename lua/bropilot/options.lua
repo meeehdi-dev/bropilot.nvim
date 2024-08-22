@@ -7,9 +7,9 @@
 local options = {
   model = "starcoder2:3b",
   model_params = {
-    num_ctx = 2048,
-    num_predict = 64,
-    temperature = 0,
+    num_ctx = 4096,
+    num_predict = -2,
+    temperature = 0.75,
     stop = { "<file_sep>" },
   },
   prompt = {
@@ -17,7 +17,7 @@ local options = {
     suffix = "<fim_suffix>",
     middle = "<fim_middle>",
   },
-  debounce = 500,
+  debounce = 1000,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
