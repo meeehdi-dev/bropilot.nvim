@@ -94,6 +94,46 @@ end
 ---@return string
 local function get_prompt(prefix, suffix)
   local opts = options.get()
+  local num_ctx = opts.model_params.num_ctx
+
+  local prefix_lines = vim.split(prefix, "\n")
+  local suffix_lines = vim.split(suffix, "\n")
+
+  local current_line = prefix_lines[#prefix_lines]
+
+  local ctx_size = 3 + #current_line / 4 -- fim tokens
+
+  prefix = current_line
+  suffix = ""
+
+  local prefix_idx = 1
+  local suffix_idx = 1
+  local ctx_inc = true
+  while ctx_inc do
+    ctx_inc = false
+
+    local prefix_line = prefix_lines[#prefix_lines - prefix_idx]
+    if prefix_line ~= nil then
+      local prefix_size = #prefix_line / 4 -- tokenize ~4chars/tok
+      if ctx_size + prefix_size < num_ctx then
+        prefix = prefix_line .. "\n" .. prefix
+        prefix_idx = prefix_idx + 1
+        ctx_size = ctx_size + prefix_size
+        ctx_inc = true
+      end
+    end
+
+    local suffix_line = suffix_lines[suffix_idx]
+    if suffix_line ~= nil then
+      local suffix_size = #suffix_line / 4 -- tokenize ~4chars/tok
+      if ctx_size + suffix_size < num_ctx then
+        suffix = suffix .. "\n" .. suffix_line
+        suffix_idx = suffix_idx + 1
+        ctx_size = ctx_size + suffix_size
+        ctx_inc = true
+      end
+    end
+  end
 
   return opts.prompt.prefix
     .. prefix
