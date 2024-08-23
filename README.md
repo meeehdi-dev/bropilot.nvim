@@ -27,6 +27,7 @@ systemctl status ollama
 
 Here is the default configuration.
 
+- `auto_suggest` is a boolean that enables automatic debounced suggestions
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
 - `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
 - `prompt` is a table defining the prefix, suffix and middle keywords for FIM
@@ -35,12 +36,13 @@ Here is the default configuration.
 
 ```lua
 require('bropilot').setup({
-  model = "starcoder2:3b",
+  auto_suggest = false,
+  model = "deepseek-coder-v2:16b-lite-base-q4_0",
   model_params = {
-    num_ctx = 2048,
-    num_predict = 64,
-    temperature = 0,
-    stop = { "<file_sep>" },
+    num_ctx = 16384,
+    num_predict = -2,
+    temperature = 0.2,
+    top_p = 0.95,
   },
   -- model_params = {
   --   mirostat = 0,
@@ -58,18 +60,19 @@ require('bropilot').setup({
   --   top_p = 0.9,
   --   min_p = 0.0,
   -- },
-  prompt = { -- FIM prompt for starcoder2
-    prefix = "<fim_prefix>",
-    suffix = "<fim_suffix>",
-    middle = "<fim_middle>",
+  prompt = {
+    prefix = "<｜fim▁begin｜>",
+    suffix = "<｜fim▁hole｜>",
+    middle = "<｜fim▁end｜>",
   },
-  debounce = 1000,
+  debounce = 100,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
     accept_block = "<Tab>",
-    resuggest = "<C-Down>",
+    suggest = "<C-Down>",
   },
+  ollama_url = "http://localhost:11434/api",
 })
 ```
 
@@ -95,6 +98,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       "j-hui/fidget.nvim",
     },
     opts = {
+      auto_suggest = true,
       model = "starcoder2:3b",
       prompt = { -- FIM prompt for starcoder2
         prefix = "<fim_prefix>",

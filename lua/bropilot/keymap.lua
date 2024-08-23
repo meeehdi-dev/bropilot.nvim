@@ -26,7 +26,7 @@ local function init()
   set(opts.keymap.accept_word, suggestion.accept_word)
   set(opts.keymap.accept_line, suggestion.accept_line)
   set(opts.keymap.accept_block, suggestion.accept_block)
-  set(opts.keymap.resuggest, function()
+  set(opts.keymap.suggest, function()
     suggestion.cancel()
     suggestion.get()
     return true

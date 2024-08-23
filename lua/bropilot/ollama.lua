@@ -7,9 +7,9 @@ local options = require("bropilot.options")
 local ready = false
 ---@type boolean
 local initializing = false
-local suggestion_progress_handle = nil
----@type job | nil
-local suggestion_job = nil
+
+local current_suggestion_pid = nil
+local suggestion_handles = {}
 
 local function is_ready()
   return not initializing and ready
@@ -38,59 +38,6 @@ local function find_model(cb)
   })
   check_job:start()
 end
-
----@param cb function | nil
-local function preload_model(cb)
-  local opts = options.get()
-
-  local preload_progress_handle =
-    util.get_progress_handle("Preloading " .. opts.model)
-  local preload_job = curl.post(opts.ollama_url .. "/generate", {
-    body = vim.json.encode({
-      model = opts.model,
-      keep_alive = "10m",
-    }),
-    callback = function()
-      async.util.scheduler(function()
-        if preload_progress_handle ~= nil then
-          preload_progress_handle:finish()
-          preload_progress_handle = nil
-        else
-          vim.notify(
-            "Preloaded model " .. opts.model .. " successfully!",
-            vim.log.levels.INFO
-          )
-        end
-        ready = true
-        initializing = false
-
-        if cb then
-          cb()
-        end
-      end)
-    end,
-  })
-  preload_job:start()
-end
-
--- keep this func as a memento that we can details about model (maybe prefix/suffix? later)
--- defaults model params should be based on this (esp context length)
--- local function show_model()
---   local opts = options.get()
---
---   curl.post(opts.ollama_url .. "/show", {
---     body = vim.json.encode({
---       name = opts.model,
---     }),
---     callback = function(data)
---       async.util.scheduler(function()
---         local body = vim.json.decode(data.body)
---         vim.print(body.model_info)
---         vim.print(body.model_info["llama.context_length"])
---       end)
---     end,
---   })
--- end
 
 ---@param cb function | nil
 local function pull_model(cb)
@@ -167,22 +114,80 @@ local function pull_model(cb)
   pull_job:start()
 end
 
+---@type function | nil
+local init_callback = nil
+---@param cb function | nil
+local function init(cb)
+  init_callback = cb
+  if ready or initializing then
+    return
+  end
+  initializing = true
+  find_model(function(found)
+    if found then
+      if init_callback then
+        init_callback()
+      end
+    else
+      pull_model(function()
+        if init_callback then
+          init_callback()
+        end
+      end)
+    end
+  end)
+end
+
+---@param pid number | nil
+local function cancel(pid)
+  if not is_ready() then
+    init(nil)
+  end
+
+  if pid == nil then
+    pid = current_suggestion_pid
+  end
+
+  vim.print(pid)
+
+  if pid and suggestion_handles[pid] then
+    local job = suggestion_handles[pid].job
+    local progress = suggestion_handles[pid].progress
+
+    job:shutdown()
+    util.finish_progress(progress)
+
+    current_suggestion_pid = nil
+  end
+end
+
 local function generate(prompt, cb)
   local opts = options.get()
 
-  suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-  suggestion_job = curl.post(opts.ollama_url .. "/generate", {
+  local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
+  local suggestion_job_pid = nil
+  local suggestion_job = curl.post(opts.ollama_url .. "/generate", {
     body = vim.json.encode({
       model = opts.model,
       options = opts.model_params,
       prompt = prompt,
     }),
     on_error = function(err)
+      if current_suggestion_pid ~= suggestion_job_pid then
+        cancel(suggestion_job_pid)
+        return
+      end
+
       if err.message ~= nil then
-        vim.notify(err.message)
+        vim.notify(err.message, vim.log.levels.ERROR)
       end
     end,
     stream = function(err, data)
+      if current_suggestion_pid ~= suggestion_job_pid then
+        cancel(suggestion_job_pid)
+        return
+      end
+
       async.util.scheduler(function()
         if err then
           vim.notify(err, vim.log.levels.ERROR)
@@ -195,11 +200,13 @@ local function generate(prompt, cb)
         local success, body = pcall(vim.json.decode, data)
         if not success then
           util.finish_progress(suggestion_progress_handle)
+          current_suggestion_pid = nil
           cb(true)
           return
         end
         if body.done then
           util.finish_progress(suggestion_progress_handle)
+          current_suggestion_pid = nil
           cb(true)
           return
         end
@@ -208,43 +215,12 @@ local function generate(prompt, cb)
       end)
     end,
   })
-end
-
-local function cancel()
-  if suggestion_job then
-    suggestion_job:shutdown()
-    suggestion_job = nil
-  end
-  util.finish_progress(suggestion_progress_handle)
-end
-
----@type function | nil
-local init_callback = nil
----@param cb function | nil
-local function init(cb)
-  init_callback = cb
-  if ready or initializing then
-    return
-  end
-  initializing = true
-  find_model(function(found)
-    if found then
-      -- show_model()
-      preload_model(function()
-        if init_callback then
-          init_callback()
-        end
-      end)
-    else
-      pull_model(function()
-        preload_model(function()
-          if init_callback then
-            init_callback()
-          end
-        end)
-      end)
-    end
-  end)
+  suggestion_job_pid = suggestion_job.pid
+  suggestion_handles[suggestion_job_pid] = {
+    job = suggestion_job,
+    progress = suggestion_progress_handle,
+  }
+  current_suggestion_pid = suggestion_job_pid
 end
 
 return {
