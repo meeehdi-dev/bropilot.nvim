@@ -148,8 +148,6 @@ local function cancel(pid)
     pid = current_suggestion_pid
   end
 
-  vim.print(pid)
-
   if pid and suggestion_handles[pid] then
     local job = suggestion_handles[pid].job
     local progress = suggestion_handles[pid].progress
