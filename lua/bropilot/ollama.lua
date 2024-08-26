@@ -114,6 +114,34 @@ local function pull_model(cb)
   pull_job:start()
 end
 
+local function preload_model()
+  local opts = options.get()
+
+  local preload_progress_handle =
+    util.get_progress_handle("Preloading " .. opts.model)
+  local preload_job = curl.post(opts.ollama_url .. "/generate", {
+    body = vim.json.encode({
+      model = opts.model,
+    }),
+    callback = function()
+      async.util.scheduler(function()
+        if preload_progress_handle ~= nil then
+          preload_progress_handle:finish()
+          preload_progress_handle = nil
+        else
+          vim.notify(
+            "Preloaded model " .. opts.model .. " successfully!",
+            vim.log.levels.INFO
+          )
+        end
+        ready = true
+        initializing = false
+      end)
+    end,
+  })
+  preload_job:start()
+end
+
 ---@type function | nil
 local init_callback = nil
 ---@param cb function | nil
@@ -127,11 +155,15 @@ local function init(cb)
     if found then
       if init_callback then
         init_callback()
+      else
+        preload_model()
       end
     else
       pull_model(function()
         if init_callback then
           init_callback()
+        else
+          preload_model()
         end
       end)
     end
@@ -141,7 +173,7 @@ end
 ---@param pid number | nil
 local function cancel(pid)
   if not is_ready() then
-    init(nil)
+    init()
   end
 
   if pid == nil then

@@ -1,11 +1,13 @@
 local suggestion = require("bropilot.suggestion")
 local keymap = require("bropilot.keymap")
 local options = require("bropilot.options")
+local ollama  = require("bropilot.ollama")
 
 ---@param opts Options
 local function setup(opts)
   opts = options.set(opts)
   keymap.init()
+  ollama.init()
 
   if opts.auto_suggest then
     vim.api.nvim_create_autocmd({ "InsertEnter" }, {
