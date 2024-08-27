@@ -114,7 +114,8 @@ local function pull_model(cb)
   pull_job:start()
 end
 
-local function preload_model()
+---@param cb function
+local function preload_model(cb)
   local opts = options.get()
 
   local preload_progress_handle =
@@ -136,6 +137,7 @@ local function preload_model()
         end
         ready = true
         initializing = false
+        cb()
       end)
     end,
   })
@@ -153,18 +155,18 @@ local function init(cb)
   initializing = true
   find_model(function(found)
     if found then
-      if init_callback then
-        init_callback()
-      else
-        preload_model()
-      end
-    else
-      pull_model(function()
+      preload_model(function()
         if init_callback then
           init_callback()
-        else
-          preload_model()
         end
+      end)
+    else
+      pull_model(function()
+        preload_model(function()
+          if init_callback then
+            init_callback()
+          end
+        end)
       end)
     end
   end)
