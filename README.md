@@ -3,9 +3,10 @@
 Bropilot is a [GitHub Copilot](https://github.com/github/copilot.vim) alternative that takes advantage of local LLMs through [Ollama](https://ollama.com/)'s API.
 
 Current working models:
-- codellama (7b & 13b)
-- codegemma (2b & 7b)
-- starcoder2 (3b & 7b)
+- deepseek-coder-v2
+- starcoder2
+- ~~codegemma~~ (doesn't seem to work anymore... no idea why)
+- codellama
 
 
 ![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/3a576c3d-7215-46cc-bfd5-150f33986996)
