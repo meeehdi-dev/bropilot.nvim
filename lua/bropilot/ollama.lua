@@ -123,6 +123,7 @@ local function preload_model(cb)
   local preload_job = curl.post(opts.ollama_url .. "/generate", {
     body = vim.json.encode({
       model = opts.model,
+      options = opts.model_params,
     }),
     callback = function()
       async.util.scheduler(function()
