@@ -6,9 +6,9 @@
 ---@type Options
 local options = {
   auto_suggest = false,
-  model = "deepseek-coder-v2:16b-lite-base-q4_0",
+  model = "deepseek-coder:1.3b-base",
   model_params = {
-    num_ctx = 16384,
+    num_ctx = 4096,
     num_predict = -2,
     temperature = 0.2,
     top_p = 0.95,
