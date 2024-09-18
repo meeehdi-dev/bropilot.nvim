@@ -3,10 +3,11 @@
 Bropilot is a [GitHub Copilot](https://github.com/github/copilot.vim) alternative that takes advantage of local LLMs through [Ollama](https://ollama.com/)'s API.
 
 Current working models:
+- deepseek-coder (smallest and fastest)
 - deepseek-coder-v2
 - starcoder2
-- ~~codegemma~~ (doesn't seem to work anymore... no idea why)
 - codellama
+- ~~codegemma~~ (doesn't seem to work anymore... https://github.com/ollama/ollama/issues/4806)
 
 
 ![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/3a576c3d-7215-46cc-bfd5-150f33986996)
@@ -38,9 +39,9 @@ Here is the default configuration.
 ```lua
 require('bropilot').setup({
   auto_suggest = false,
-  model = "deepseek-coder-v2:16b-lite-base-q4_0",
+  model = "deepseek-coder:1.3b-base",
   model_params = {
-    num_ctx = 16384,
+    num_ctx = 4096, -- smaller ctx for faster suggestions (max is 16384 for this model)
     num_predict = -2,
     temperature = 0.2,
     top_p = 0.95,
@@ -66,7 +67,7 @@ require('bropilot').setup({
     suffix = "<｜fim▁hole｜>",
     middle = "<｜fim▁end｜>",
   },
-  debounce = 100,
+  debounce = 100, -- careful with this setting when auto_suggest is enabled, can lead to curl jobs overload
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
