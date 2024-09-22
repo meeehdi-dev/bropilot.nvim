@@ -6,17 +6,18 @@
 ---@type Options
 local options = {
   auto_suggest = false,
-  model = "deepseek-coder:1.3b-base",
+  model = "qwen2.5-coder:1.5b-base",
   model_params = {
     num_ctx = 4096,
     num_predict = -2,
     temperature = 0.2,
     top_p = 0.95,
+    stop = { "<|fim_pad|>", "<|endoftext|>" },
   },
   prompt = {
-    prefix = "<｜fim▁begin｜>",
-    suffix = "<｜fim▁hole｜>",
-    middle = "<｜fim▁end｜>",
+    prefix = "<|fim_prefix|>",
+    suffix = "<|fim_suffix|>",
+    middle = "<|fim_middle|>",
   },
   debounce = 100,
   keymap = {
