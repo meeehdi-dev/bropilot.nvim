@@ -17,7 +17,7 @@ local function render(lines)
   end
 
   local extmark_opts = {
-    virt_text_pos = "overlay",
+    virt_text_pos = "inline",
     virt_text = { { lines[1], "Comment" } },
   }
 
@@ -35,7 +35,7 @@ local function render(lines)
     0,
     ns_id,
     vim.fn.line(".") - 1,
-    #vim.api.nvim_get_current_line(),
+    vim.fn.col(".") - 1,
     extmark_opts
   )
 end

@@ -7,7 +7,8 @@ local options = require("bropilot.options")
 ---@type string
 local current_suggestion = ""
 ---@type string
-local context_line = ""
+local context_line_before = ""
+local context_line_after = ""
 local context_row = -1
 ---@type uv_timer_t | nil
 local debounce_timer = nil
@@ -32,12 +33,14 @@ local function render()
   local suggestion_lines = vim.split(current_suggestion, "\n")
 
   local _, end_ = string.find(
-    context_line .. suggestion_lines[1],
+    context_line_before .. suggestion_lines[1] .. context_line_after,
     vim.pesc(vim.api.nvim_get_current_line())
   )
   if end_ ~= nil then
-    suggestion_lines[1] =
-      string.sub(context_line .. suggestion_lines[1], end_ + 1)
+    suggestion_lines[1] = string.sub(
+      context_line_before .. suggestion_lines[1] .. context_line_after,
+      end_ + 1
+    )
   end
 
   virtual_text.render(suggestion_lines)
@@ -52,15 +55,6 @@ local function on_data(done, response)
 
   if response then
     current_suggestion = current_suggestion .. response
-  end
-
-  local eot_placeholder = "<EOT>"
-  local _, eot = string.find(current_suggestion, eot_placeholder)
-  if eot then
-    cancel()
-    current_suggestion =
-      string.sub(current_suggestion, 0, eot - #eot_placeholder)
-    current_suggestion = util.trim(current_suggestion)
   end
 
   render()
@@ -82,9 +76,9 @@ local function can_get()
   end
 
   -- cursor at end of line
-  if vim.fn.col(".") <= #vim.api.nvim_get_current_line() then
-    return false
-  end
+  -- if vim.fn.col(".") <= #vim.api.nvim_get_current_line() then
+  --   return false
+  -- end
 
   return true
 end
@@ -166,11 +160,27 @@ local function get()
       debounce_timer = nil
       async.util.scheduler(function()
         local row = vim.fn.line(".")
+        local col = vim.fn.col(".")
 
-        local prefix = util.join(util.get_lines(0, row))
-        local suffix = util.join(util.get_lines(row))
+        local current_line = util.get_lines(row - 1, row)[1]
 
-        context_line = vim.api.nvim_get_current_line()
+        local prefix_last_line = string.sub(current_line, 0, col - 1)
+        local suffix_first_line = string.sub(current_line, col)
+
+        local prefix_lines = util.get_lines(0, row - 1)
+        table.insert(prefix_lines, prefix_last_line)
+
+        local suffix_lines = util.get_lines(row)
+        if suffix_first_line ~= "" then
+          table.insert(suffix_lines, 1, suffix_first_line)
+        end
+
+        local prefix = util.join(prefix_lines)
+        local suffix = util.join(suffix_lines)
+
+        local context_line = vim.api.nvim_get_current_line()
+        context_line_before = string.sub(context_line, 0, col - 1)
+        context_line_after = string.sub(context_line, col)
         context_row = row
 
         local prompt = get_prompt(prefix, suffix)
@@ -193,9 +203,10 @@ local function contains_context()
 
   local suggestion_lines = vim.split(current_suggestion, "\n")
 
-  return (context_line .. suggestion_lines[1]) == current_line
+  return (context_line_before .. suggestion_lines[1] .. context_line_after)
+      == current_line
     or string.find(
-        context_line .. suggestion_lines[1],
+        context_line_before .. suggestion_lines[1] .. context_line_after,
         vim.pesc(current_line)
       )
       ~= nil
@@ -209,7 +220,9 @@ local function accept_word()
 
   local suggestion_lines = vim.split(current_suggestion, "\n")
 
-  local current_line = context_line .. suggestion_lines[1]
+  local current_line = context_line_before
+    .. suggestion_lines[1]
+    .. context_line_after
 
   local insert_lines = {}
 
@@ -229,19 +242,21 @@ local function accept_word()
     suggestion_lines[1] = string.sub(current_line, word_end)
 
     current_line = string.sub(current_line, 1, word_end - 1)
+      .. context_line_after
   end
   if word_end == nil then
     suggestion_lines[1] = ""
   end
 
-  context_line = current_line
+  context_line_before = string.sub(current_line, 0, word_end)
+  context_line_after = string.sub(current_line, word_end + 1)
 
   table.insert(insert_lines, current_line)
 
   local line = vim.fn.line(".")
 
   util.set_lines(line - 1, line, insert_lines)
-  util.set_cursor(line + #insert_lines - 1, #current_line)
+  util.set_cursor(line + #insert_lines - 1, #context_line_before - 1)
 
   current_suggestion = util.join(suggestion_lines, "\n")
 
@@ -259,20 +274,22 @@ local function accept_line()
   local insert_lines = {}
 
   if suggestion_lines[1] == "" then
-    context_line = ""
+    context_line_before = ""
+    context_line_after = ""
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
 
     table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
 
-  context_line = context_line .. suggestion_lines[1]
-  table.insert(insert_lines, context_line)
+  context_line_before = context_line_before .. suggestion_lines[1] .. context_line_after
+  context_line_after = ""
+  table.insert(insert_lines, context_line_before)
 
   local line = vim.fn.line(".")
 
   util.set_lines(line - 1, line, insert_lines)
-  util.set_cursor(line + #insert_lines - 1, #context_line)
+  util.set_cursor(line + #insert_lines - 1, #context_line_before)
 
   suggestion_lines[1] = ""
   current_suggestion = util.join(suggestion_lines, "\n")
@@ -290,7 +307,8 @@ local function accept_block()
 
   local blocks = vim.split(current_suggestion, "\n\n")
   if blocks[1] == "" then
-    context_line = ""
+    context_line_before = ""
+    context_line_after = ""
     context_row = context_row + 2
     table.remove(blocks, 1)
     table.insert(next_lines, 1, vim.api.nvim_get_current_line())
@@ -311,7 +329,7 @@ local function accept_block()
   end
 
   local block_lines = vim.split(block, "\n")
-  block_lines[1] = context_line .. block_lines[1]
+  block_lines[1] = context_line_before .. block_lines[1] .. context_line_after
 
   for k, v in pairs(next_lines) do
     table.insert(block_lines, k, v)
@@ -323,7 +341,8 @@ local function accept_block()
   util.set_cursor(line - 1 + #block_lines, #block_lines[#block_lines])
 
   current_suggestion = string.sub(current_suggestion, #block + #next_lines + 1)
-  context_line = block_lines[#block_lines]
+  context_line_before = block_lines[#block_lines]
+  context_line_after = ""
   context_row = line - 1 + #block_lines
 
   return true
