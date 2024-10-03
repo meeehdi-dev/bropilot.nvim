@@ -256,7 +256,7 @@ local function accept_word()
   local line = vim.fn.line(".")
 
   util.set_lines(line - 1, line, insert_lines)
-  util.set_cursor(line + #insert_lines - 1, #context_line_before - 1)
+  util.set_cursor(line + #insert_lines - 1, #context_line_before)
 
   current_suggestion = util.join(suggestion_lines, "\n")
 
@@ -282,7 +282,9 @@ local function accept_line()
     table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
 
-  context_line_before = context_line_before .. suggestion_lines[1] .. context_line_after
+  context_line_before = context_line_before
+    .. suggestion_lines[1]
+    .. context_line_after
   context_line_after = ""
   table.insert(insert_lines, context_line_before)
 
