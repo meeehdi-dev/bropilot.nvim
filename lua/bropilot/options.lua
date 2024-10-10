@@ -5,10 +5,10 @@
 
 ---@type Options
 local options = {
-  auto_suggest = false,
+  auto_suggest = true,
   model = "qwen2.5-coder:1.5b-base",
   model_params = {
-    num_ctx = 4096,
+    num_ctx = 16384,
     num_predict = -2,
     temperature = 0.2,
     top_p = 0.95,
@@ -19,7 +19,7 @@ local options = {
     suffix = "<|fim_suffix|>",
     middle = "<|fim_middle|>",
   },
-  debounce = 100,
+  debounce = 500,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
