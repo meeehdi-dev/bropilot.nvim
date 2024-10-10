@@ -282,16 +282,19 @@ local function accept_line()
     table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
 
-  context_line_before = context_line_before
+  local context_line = context_line_before
     .. suggestion_lines[1]
     .. context_line_after
   context_line_after = ""
-  table.insert(insert_lines, context_line_before)
+  table.insert(insert_lines, context_line)
 
   local line = vim.fn.line(".")
 
   util.set_lines(line - 1, line, insert_lines)
-  util.set_cursor(line + #insert_lines - 1, #context_line_before)
+  util.set_cursor(
+    line + #insert_lines - 1,
+    #(context_line_before .. suggestion_lines[1])
+  )
 
   suggestion_lines[1] = ""
   current_suggestion = util.join(suggestion_lines, "\n")
@@ -301,6 +304,10 @@ end
 
 ---@return boolean success true if successful
 local function accept_block()
+  if context_line_after ~= "" then
+    return accept_line()
+  end
+
   if current_suggestion == "" then
     return false
   end
