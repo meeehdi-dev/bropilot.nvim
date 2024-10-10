@@ -98,10 +98,10 @@ local function get_prompt(prefix, suffix)
   local ctx_size = 3 + #current_line / 4 -- fim tokens
 
   prefix = current_line
-  suffix = ""
+  suffix = suffix_lines[1]
 
   local prefix_idx = 1
-  local suffix_idx = 1
+  local suffix_idx = 2
   local ctx_inc = true
   while ctx_inc do
     ctx_inc = false
