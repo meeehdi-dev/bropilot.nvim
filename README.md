@@ -40,10 +40,10 @@ Here is the default configuration.
 
 ```lua
 require('bropilot').setup({
-  auto_suggest = false,
+  auto_suggest = true,
   model = "qwen2.5-coder:1.5b-base",
   model_params = {
-    num_ctx = 4096, -- smaller ctx for faster suggestions (max is 16384 for this model)
+    num_ctx = 16384,
     num_predict = -2,
     temperature = 0.2,
     top_p = 0.95,
@@ -70,7 +70,7 @@ require('bropilot').setup({
     suffix = "<|fim_suffix|>",
     middle = "<|fim_middle|>",
   },
-  debounce = 100, -- careful with this setting when auto_suggest is enabled, can lead to curl jobs overload
+  debounce = 500, -- careful with this setting when auto_suggest is enabled, can lead to curl jobs overload
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",
