@@ -348,6 +348,10 @@ local function accept_block()
 
   local line = vim.fn.line(".")
 
+  if block_lines[#block_lines] == "" then
+    table.remove(block_lines, #block_lines)
+  end
+
   util.set_lines(line - 1, line, block_lines)
   util.set_cursor(line - 1 + #block_lines, #block_lines[#block_lines])
 
