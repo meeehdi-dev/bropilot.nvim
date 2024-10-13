@@ -297,6 +297,7 @@ local function accept_line()
     #(context_line_before .. suggestion_lines[1])
   )
 
+  context_line_before = context_line_before .. suggestion_lines[1]
   suggestion_lines[1] = ""
   current_suggestion = util.join(suggestion_lines, "\n")
 
