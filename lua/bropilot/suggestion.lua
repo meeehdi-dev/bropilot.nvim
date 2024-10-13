@@ -246,10 +246,11 @@ local function accept_word()
   end
   if word_end == nil then
     suggestion_lines[1] = ""
+    word_end = 0
   end
 
   context_line_before = string.sub(current_line, 0, word_end)
-  context_line_after = string.sub(current_line, word_end + 1)
+  context_line_after = string.sub(current_line, word_end)
 
   table.insert(insert_lines, current_line)
 
