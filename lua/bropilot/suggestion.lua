@@ -214,7 +214,7 @@ end
 
 ---@return boolean success true if successful
 local function accept_word()
-  if current_suggestion == "" then
+  if current_suggestion == "" or current_suggestion == "\n" then
     return false
   end
 
@@ -246,11 +246,11 @@ local function accept_word()
   end
   if word_end == nil then
     suggestion_lines[1] = ""
-    word_end = 0
+    word_end = #current_line
   end
 
   context_line_before = string.sub(current_line, 0, word_end)
-  context_line_after = string.sub(current_line, word_end)
+  context_line_after = string.sub(current_line, word_end + 1)
 
   table.insert(insert_lines, current_line)
 
@@ -266,7 +266,7 @@ end
 
 ---@return boolean success true if successful
 local function accept_line()
-  if current_suggestion == "" then
+  if current_suggestion == "" or current_suggestion == "\n" then
     return false
   end
 
@@ -310,7 +310,7 @@ local function accept_block()
     return accept_line()
   end
 
-  if current_suggestion == "" then
+  if current_suggestion == "" or current_suggestion == "\n" then
     return false
   end
 
