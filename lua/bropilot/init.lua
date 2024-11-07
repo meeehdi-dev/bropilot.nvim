@@ -1,7 +1,8 @@
 local suggestion = require("bropilot.suggestion")
 local keymap = require("bropilot.keymap")
 local options = require("bropilot.options")
-local ollama  = require("bropilot.ollama")
+local ollama = require("bropilot.ollama")
+local util = require("bropilot.util")
 
 ---@param opts Options
 local function setup(opts)
@@ -12,7 +13,9 @@ local function setup(opts)
   if opts.auto_suggest then
     vim.api.nvim_create_autocmd({ "InsertEnter" }, {
       callback = function()
-        suggestion.get()
+        if not util.contains(opts.excluded_filetypes, vim.bo.filetype) then
+          suggestion.get()
+        end
       end,
     })
   end
@@ -25,7 +28,10 @@ local function setup(opts)
       end
 
       suggestion.cancel()
-      if opts.auto_suggest then
+      if
+        opts.auto_suggest
+        and not util.contains(opts.excluded_filetypes, vim.bo.filetype)
+      then
         suggestion.get()
       end
     end,

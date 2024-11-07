@@ -1,11 +1,12 @@
 ---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: string[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number, min_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
 ---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string, suggest: string }
----@alias Options { auto_suggest?: boolean, model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
+---@alias Options { auto_suggest?: boolean, excluded_filetypes?: string[], model: string, model_params?: ModelParams, prompt: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
 
 ---@type Options
 local options = {
   auto_suggest = true,
+  excluded_filetypes = {},
   model = "qwen2.5-coder:1.5b-base",
   model_params = {
     num_ctx = 16384,
