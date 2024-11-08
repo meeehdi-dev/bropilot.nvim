@@ -67,13 +67,12 @@ end
 ---@param tbl string[]
 ---@param x string
 local function contains(tbl, x)
-  local found = false
   for _, v in pairs(tbl) do
     if v == x then
-      found = true
+      return true
     end
   end
-  return found
+  return false
 end
 
 return {
