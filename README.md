@@ -32,6 +32,7 @@ systemctl status ollama
 Here is the default configuration.
 
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
+- `excluded_filetypes` is an array of filetypes ignored by the `auto_suggest` option (https://github.com/meeehdi-dev/bropilot.nvim/pull/1)
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
 - `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
 - `prompt` is a table defining the prefix, suffix and middle keywords for FIM
@@ -41,6 +42,7 @@ Here is the default configuration.
 ```lua
 require('bropilot').setup({
   auto_suggest = true,
+  excluded_filetypes = {},
   model = "qwen2.5-coder:1.5b-base",
   model_params = {
     num_ctx = 16384,
