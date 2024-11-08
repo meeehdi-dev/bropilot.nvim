@@ -64,6 +64,17 @@ local function finish_progress(handle)
   end
 end
 
+---@param tbl string[]
+---@param x string
+local function contains(tbl, x)
+  for _, v in pairs(tbl) do
+    if v == x then
+      return true
+    end
+  end
+  return false
+end
+
 return {
   finish_progress = finish_progress,
   get_last_char = get_last_char,
@@ -73,4 +84,5 @@ return {
   set_cursor = set_cursor,
   set_lines = set_lines,
   trim = trim,
+  contains = contains,
 }
