@@ -229,6 +229,8 @@ local function accept_word()
 
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
+    context_line_before = ""
+    context_line_after = ""
 
     table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
@@ -241,7 +243,7 @@ local function accept_word()
   end
   if word_end == nil then
     suggestion_lines[1] = ""
-    word_end = #current_line
+    word_end = #current_line + 1
   end
 
   context_line_before = string.sub(current_line, 0, word_end - 1)
