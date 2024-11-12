@@ -200,6 +200,7 @@ local function contains_context()
   end
 
   local current_line = vim.api.nvim_get_current_line()
+  current_line = string.sub(current_line, 1, vim.fn.col("."))
 
   local suggestion_lines = vim.split(current_suggestion, "\n")
 
@@ -220,10 +221,6 @@ local function accept_word()
 
   local suggestion_lines = vim.split(current_suggestion, "\n")
 
-  local current_line = context_line_before
-    .. suggestion_lines[1]
-    .. context_line_after
-
   local insert_lines = {}
 
   local col = vim.fn.col(".")
@@ -232,25 +229,23 @@ local function accept_word()
 
     context_row = context_row + 1
     table.remove(suggestion_lines, 1)
-    current_line = suggestion_lines[1]
 
     table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
 
+  local current_line = context_line_before .. suggestion_lines[1] .. context_line_after
+
   local _, word_end = string.find(current_line, "[^%s][%s.]", col + 1)
   if word_end ~= nil then
-    suggestion_lines[1] = string.sub(current_line, word_end)
-
-    current_line = string.sub(current_line, 1, word_end - 1)
-      .. context_line_after
+    suggestion_lines[1] = string.sub(suggestion_lines[1], word_end - #context_line_before)
   end
   if word_end == nil then
     suggestion_lines[1] = ""
     word_end = #current_line
   end
 
-  context_line_before = string.sub(current_line, 0, word_end)
-  context_line_after = string.sub(current_line, word_end + 1)
+  context_line_before = string.sub(current_line, 0, word_end - 1)
+  current_line = context_line_before .. context_line_after
 
   table.insert(insert_lines, current_line)
 
