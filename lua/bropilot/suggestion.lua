@@ -4,14 +4,13 @@ local virtual_text = require("bropilot.virtual-text")
 local ollama = require("bropilot.ollama")
 local options = require("bropilot.options")
 
----@type string
 local current_suggestion = ""
----@type string
 local context_line_before = ""
 local context_line_after = ""
 local context_row = -1
----@type uv_timer_t | nil
+---@type uv.uv_timer_t | nil
 local debounce_timer = nil
+local debounce = -1 -- used to gradually increase timeout and avoid issues with curl
 
 local function cancel()
   if debounce_timer then
@@ -49,6 +48,8 @@ end
 ---@param done boolean
 ---@param response string
 local function on_data(done, response)
+  debounce = -1 -- reset debounce timer
+
   if done then
     return
   end
@@ -155,10 +156,22 @@ local function get()
 
   local opts = options.get()
   local timer = vim.uv.new_timer()
+  if timer == nil then
+    return
+  end
+
+  if debounce == -1 then
+    debounce = opts.debounce
+  end
+
   if
-    timer:start(opts.debounce, 0, function()
+    timer:start(debounce, 0, function()
       debounce_timer = nil
       async.util.scheduler(function()
+        if debounce ~= -1 then
+          debounce = debounce * 1.5
+        end
+
         local row = vim.fn.line(".")
         local col = vim.fn.col(".")
 
@@ -235,11 +248,14 @@ local function accept_word()
     table.insert(insert_lines, vim.api.nvim_get_current_line())
   end
 
-  local current_line = context_line_before .. suggestion_lines[1] .. context_line_after
+  local current_line = context_line_before
+    .. suggestion_lines[1]
+    .. context_line_after
 
   local _, word_end = string.find(current_line, "[^%s][%s.]", col + 1)
   if word_end ~= nil then
-    suggestion_lines[1] = string.sub(suggestion_lines[1], word_end - #context_line_before)
+    suggestion_lines[1] =
+      string.sub(suggestion_lines[1], word_end - #context_line_before)
   end
   if word_end == nil then
     suggestion_lines[1] = ""
