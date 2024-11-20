@@ -10,7 +10,7 @@ local context_line_after = ""
 local context_row = -1
 ---@type uv.uv_timer_t | nil
 local debounce_timer = nil
-local debounce = -1 -- used to gradually increase timeout and avoid issues with curl
+local debounce = 0 -- used to gradually increase timeout and avoid issues with curl
 
 local function cancel()
   if debounce_timer then
@@ -48,7 +48,9 @@ end
 ---@param done boolean
 ---@param response string
 local function on_data(done, response)
-  debounce = -1 -- reset debounce timer
+  if debounce > 0 then
+    debounce = 0 -- reset debounce timer
+  end
 
   if done then
     return
@@ -160,7 +162,7 @@ local function get()
     return
   end
 
-  if debounce == -1 then
+  if debounce < 0 then
     debounce = opts.debounce
   end
 
@@ -168,7 +170,7 @@ local function get()
     timer:start(debounce, 0, function()
       debounce_timer = nil
       async.util.scheduler(function()
-        if debounce ~= -1 then
+        if debounce > 0 then
           debounce = debounce * 1.5
         end
 
