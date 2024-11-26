@@ -4,9 +4,12 @@ local options = require("bropilot.options")
 local ollama = require("bropilot.ollama")
 local util = require("bropilot.util")
 
----@param opts Options
+---@param opts BroOptions
 local function setup(opts)
   opts = options.set(opts)
+  if not opts then
+    return
+  end
   keymap.init()
   ollama.init()
 

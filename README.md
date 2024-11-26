@@ -34,9 +34,10 @@ Here is the default configuration.
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
 - `excluded_filetypes` is an array of filetypes ignored by the `auto_suggest` option (https://github.com/meeehdi-dev/bropilot.nvim/pull/1)
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
+- `preset` is a boolean to enable/disabled predefined settings ([See compatible models](https://github.com/meeehdi=dev/bropilot.nvim/blob/main/lua/bropilot/presets.lua))
 - `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
-- `prompt` is a table defining the prefix, suffix and middle keywords for FIM
-- `debounce` is a number in milliseconds
+- `prompt` is a table defining the `prefix`, `suffix` and `middle` keywords for FIM
+- `debounce` is a number in milliseconds (this value gradually increases as long as curl does not respond to avoid overload issues)
 - `keymap` is a table to set the different keymap shortcuts
 
 ```lua
@@ -44,35 +45,8 @@ require('bropilot').setup({
   auto_suggest = true,
   excluded_filetypes = {},
   model = "qwen2.5-coder:1.5b-base",
-  model_params = {
-    num_ctx = 16384,
-    num_predict = -2,
-    temperature = 0.2,
-    top_p = 0.95,
-    stop = { "<|fim_pad|>", "<|endoftext|>" },
-  },
-  -- model_params = {
-  --   mirostat = 0,
-  --   mirostat_eta = 0.1,
-  --   mirostat_tau = 5.0,
-  --   num_ctx = 2048,
-  --   repeat_last_n = 64,
-  --   repeat_penalty = 1.1,
-  --   temperature = 0.8,
-  --   seed = 0,
-  --   stop = {},
-  --   tfs_z = 1,
-  --   num_predict = 128,
-  --   top_k = 40,
-  --   top_p = 0.9,
-  --   min_p = 0.0,
-  -- },
-  prompt = {
-    prefix = "<|fim_prefix|>",
-    suffix = "<|fim_suffix|>",
-    middle = "<|fim_middle|>",
-  },
-  debounce = 500, -- careful with this setting when auto_suggest is enabled, can lead to curl jobs overload
+  preset = true,
+  debounce = 500,
   keymap = {
     accept_word = "<C-Right>",
     accept_line = "<S-Right>",

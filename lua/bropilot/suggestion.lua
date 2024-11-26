@@ -162,7 +162,7 @@ local function get()
     return
   end
 
-  if debounce < 0 then
+  if debounce <= 0 then
     debounce = opts.debounce
   end
 
