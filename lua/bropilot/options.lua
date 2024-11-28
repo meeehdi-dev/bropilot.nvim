@@ -6,7 +6,7 @@ local presets = require("bropilot.presets")
 ---@alias BroOptions { auto_suggest?: boolean, excluded_filetypes?: string[], model: string, model_params?: ModelParams, prompt?: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
 
 ---@type BroOptions
-local options = {
+local default_opts = {
   auto_suggest = true,
   excluded_filetypes = {},
   model = "qwen2.5-coder:1.5b-base",
@@ -21,33 +21,38 @@ local options = {
   ollama_url = "http://localhost:11434/api",
 }
 
+---@type BroOptions
+local current_opts
+
 ---@param opts BroOptions
 ---@return BroOptions | nil
 local function set(opts)
-  options = vim.tbl_deep_extend("force", options, opts or {})
-  if not options.preset then
-    return options
+  current_opts = vim.tbl_deep_extend("force", default_opts, opts or {})
+
+  -- handle preset
+  if current_opts.preset then
+    local model_name = vim.split(current_opts.model, ":")[1]
+    if presets[model_name] then
+      if not current_opts.model_params then
+        current_opts.model_params = presets[model_name].model_params
+      end
+      if not current_opts.prompt then
+        current_opts.prompt = presets[model_name].prompt
+      end
+    end
   end
 
-  local model_name = vim.split(options.model, ":")[1]
-  if presets[model_name] then
-    if not options.model_params then
-      options.model_params = presets[model_name].model_params
-    end
-    if not options.prompt then
-      options.prompt = presets[model_name].prompt
-    end
+  -- assert prompt
+  if not current_opts.prompt then
+    return false
   end
-  if not options.prompt then
-    vim.notify("missing configuration for " .. model_name, vim.log.levels.ERROR)
-    return nil
-  end
-  return options
+
+  return true
 end
 
 ---@return BroOptions
 local function get()
-  return options
+  return current_opts
 end
 
 return {
