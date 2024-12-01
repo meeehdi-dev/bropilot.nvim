@@ -38,13 +38,16 @@ Here is the default configuration.
 - `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
 - `prompt` is a table defining the `prefix`, `suffix` and `middle` keywords for FIM
 - `debounce` is a number in milliseconds (this value gradually increases as long as curl does not respond to avoid overload issues)
-- `keymap` is a table to set the different keymap shortcuts
+- `keymap` is a table to set the different keymap shortcuts *(not using lazy keys to allow fallback to default behavior when suggestions are not active)*
 
 ```lua
 require('bropilot').setup({
   auto_suggest = true,
   excluded_filetypes = {},
   model = "qwen2.5-coder:0.5b-base",
+  model_params = {
+    num_ctx = 32768,
+  },
   preset = true,
   debounce = 500,
   keymap = {

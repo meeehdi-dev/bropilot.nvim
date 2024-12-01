@@ -10,6 +10,9 @@ local default_opts = {
   auto_suggest = true,
   excluded_filetypes = {},
   model = "qwen2.5-coder:0.5b-base",
+  model_params = {
+    num_ctx = 32768,
+  },
   preset = true,
   debounce = 500,
   keymap = {
@@ -33,12 +36,16 @@ local function set(opts)
   if current_opts.preset then
     local model_name = vim.split(current_opts.model, ":")[1]
     if presets[model_name] then
-      if not current_opts.model_params then
-        current_opts.model_params = presets[model_name].model_params
-      end
-      if not current_opts.prompt then
-        current_opts.prompt = presets[model_name].prompt
-      end
+      current_opts.model_params = vim.tbl_deep_extend(
+        "force",
+        presets[model_name].model_params,
+        current_opts.model_params or {}
+      )
+      current_opts.prompt = vim.tbl_deep_extend(
+        "force",
+        presets[model_name].prompt,
+        current_opts.prompt or {}
+      )
     end
   end
 
