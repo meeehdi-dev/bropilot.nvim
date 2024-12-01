@@ -1,7 +1,7 @@
 local presets = {
   ["qwen2.5-coder"] = {
     model_params = {
-      num_ctx = 16384,
+      num_ctx = 32768,
       num_predict = -2,
       temperature = 0.2,
       top_p = 0.95,

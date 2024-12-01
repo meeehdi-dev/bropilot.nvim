@@ -44,7 +44,7 @@ Here is the default configuration.
 require('bropilot').setup({
   auto_suggest = true,
   excluded_filetypes = {},
-  model = "qwen2.5-coder:1.5b-base",
+  model = "qwen2.5-coder:0.5b-base",
   preset = true,
   debounce = 500,
   keymap = {
