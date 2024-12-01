@@ -25,7 +25,7 @@ local default_opts = {
 local current_opts
 
 ---@param opts BroOptions
----@return BroOptions | nil
+---@return BroOptions | boolean
 local function set(opts)
   current_opts = vim.tbl_deep_extend("force", default_opts, opts or {})
 
