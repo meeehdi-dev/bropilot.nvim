@@ -21,7 +21,13 @@ local function find_model(cb)
 
   local find_progress_handle =
     util.get_progress_handle("Finding model " .. opts.model)
-  local check_job = curl.get(opts.ollama_url .. "/tags", {
+  curl.get(opts.ollama_url .. "/tags", {
+    on_error = function(err)
+      async.util.scheduler(function()
+        vim.notify(err.message, vim.log.levels.ERROR)
+        util.finish_progress(find_progress_handle)
+      end)
+    end,
     callback = function(data)
       async.util.scheduler(function()
         util.finish_progress(find_progress_handle)
@@ -36,7 +42,6 @@ local function find_model(cb)
       end)
     end,
   })
-  check_job:start()
 end
 
 ---@param cb function | nil
@@ -45,12 +50,13 @@ local function pull_model(cb)
 
   local pull_progress_handle =
     util.get_progress_handle("Pulling model " .. opts.model)
-  local pull_job = curl.post(opts.ollama_url .. "/pull", {
+  curl.post(opts.ollama_url .. "/pull", {
     body = vim.json.encode({ name = opts.model }),
     on_error = function(err)
-      if err.code ~= nil then
-        vim.notify(err.message)
-      end
+      async.util.scheduler(function()
+        vim.notify(err.message, vim.log.levels.ERROR)
+        util.finish_progress(pull_progress_handle)
+      end)
     end,
     stream = function(err, data)
       async.util.scheduler(function()
@@ -111,7 +117,6 @@ local function pull_model(cb)
       end)
     end,
   })
-  pull_job:start()
 end
 
 ---@param cb function
@@ -120,11 +125,17 @@ local function preload_model(cb)
 
   local preload_progress_handle =
     util.get_progress_handle("Preloading " .. opts.model)
-  local preload_job = curl.post(opts.ollama_url .. "/generate", {
+  curl.post(opts.ollama_url .. "/generate", {
     body = vim.json.encode({
       model = opts.model,
       options = opts.model_params,
     }),
+    on_error = function(err)
+      async.util.scheduler(function()
+        vim.notify(err.message, vim.log.levels.ERROR)
+        util.finish_progress(preload_progress_handle)
+      end)
+    end,
     callback = function()
       async.util.scheduler(function()
         if preload_progress_handle ~= nil then
@@ -142,7 +153,6 @@ local function preload_model(cb)
       end)
     end,
   })
-  preload_job:start()
 end
 
 ---@type function | nil
@@ -211,9 +221,9 @@ local function generate(prompt, cb)
         return
       end
 
-      if err.message ~= nil then
+      async.util.scheduler(function()
         vim.notify(err.message, vim.log.levels.ERROR)
-      end
+      end)
     end,
     stream = function(err, data)
       if current_suggestion_pid ~= suggestion_job_pid then
