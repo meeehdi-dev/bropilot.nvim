@@ -129,6 +129,7 @@ local function preload_model(cb)
     body = vim.json.encode({
       model = opts.model,
       options = opts.model_params,
+      keep_alive = "1h",
     }),
     on_error = function(err)
       async.util.scheduler(function()
