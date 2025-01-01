@@ -222,6 +222,11 @@ local function generate(prompt, cb)
         return
       end
 
+      if err.exit == nil then
+        -- avoid errors when cancelling a suggestion
+        return
+      end
+
       async.util.scheduler(function()
         vim.notify(err.message, vim.log.levels.ERROR)
       end)
