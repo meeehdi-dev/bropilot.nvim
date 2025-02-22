@@ -34,7 +34,6 @@ Here is the default configuration.
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
 - `excluded_filetypes` is an array of filetypes ignored by the `auto_suggest` option (https://github.com/meeehdi-dev/bropilot.nvim/pull/1)
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
-- `preset` is a boolean to enable/disabled predefined settings ([See compatible models](https://github.com/meeehdi=dev/bropilot.nvim/blob/main/lua/bropilot/presets.lua))
 - `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
 - `prompt` is a table defining the `prefix`, `suffix` and `middle` keywords for FIM
 - `debounce` is a number in milliseconds (this value gradually increases as long as curl does not respond to avoid overload issues)
@@ -47,8 +46,17 @@ require('bropilot').setup({
   model = "qwen2.5-coder:0.5b-base",
   model_params = {
     num_ctx = 32768,
+    num_ctx = 8192,
+    num_predict = -2,
+    temperature = 0.2,
+    top_p = 0.95,
+    stop = { "<|fim_pad|>", "<|endoftext|>" },
   },
-  preset = true,
+  prompt = {
+    prefix = "<|fim_prefix|>",
+    suffix = "<|fim_suffix|>",
+    middle = "<|fim_middle|>",
+  },
   debounce = 500,
   keymap = {
     accept_word = "<C-Right>",
