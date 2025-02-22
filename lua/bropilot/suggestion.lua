@@ -228,11 +228,18 @@ local function contains_context()
       ~= nil
 end
 
+local function add_undo_breakpoint()
+  local undo = vim.api.nvim_replace_termcodes("<C-g>u", true, true, true)
+  vim.api.nvim_feedkeys(undo, "n", true)
+end
+
 ---@return boolean success true if successful
 local function accept_word()
   if current_suggestion == "" or current_suggestion == "\n" then
     return false
   end
+
+  add_undo_breakpoint()
 
   local suggestion_lines = vim.split(current_suggestion, "\n")
 
@@ -285,6 +292,8 @@ local function accept_line()
     return false
   end
 
+  add_undo_breakpoint()
+
   local suggestion_lines = vim.split(current_suggestion, "\n")
 
   local insert_lines = {}
@@ -328,6 +337,8 @@ local function accept_block()
   if current_suggestion == "" or current_suggestion == "\n" then
     return false
   end
+
+  add_undo_breakpoint()
 
   local next_lines = {}
 
