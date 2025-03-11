@@ -10,7 +10,7 @@ local default_opts = {
   model = "qwen2.5-coder:0.5b-base",
   model_params = {
     num_ctx = 8192,
-    num_predict = -2,
+    num_predict = -1,
     temperature = 0.2,
     top_p = 0.95,
     stop = { "<|fim_pad|>", "<|endoftext|>" },
@@ -22,10 +22,10 @@ local default_opts = {
   },
   debounce = 500,
   keymap = {
-    accept_word = "<C-l>",
-    accept_line = "<S-Tab>",
+    accept_word = "<C-Right>",
+    accept_line = "<S-Right>",
     accept_block = "<Tab>",
-    suggest = "<C-j>",
+    suggest = "<C-Down>",
   },
   ollama_url = "http://localhost:11434/api",
 }
