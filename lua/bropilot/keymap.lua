@@ -4,7 +4,7 @@ local suggestion = require("bropilot.suggestion")
 ---@param keycode string | nil
 ---@param cb function
 local function set(keycode, cb)
-  if keycode == nil or keycode == "" then
+  if not keycode then
     return
   end
 
