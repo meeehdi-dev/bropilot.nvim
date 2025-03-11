@@ -8,6 +8,7 @@ local current_suggestion = ""
 local context_line_before = ""
 local context_line_after = ""
 local context_row = -1
+local context_col = -1
 ---@type uv.uv_timer_t | nil
 local debounce_timer = nil
 local debounce = 0 -- used to gradually increase timeout and avoid issues with curl
@@ -35,6 +36,7 @@ local function render()
     context_line_before .. suggestion_lines[1] .. context_line_after,
     vim.pesc(vim.api.nvim_get_current_line())
   )
+
   if end_ ~= nil then
     suggestion_lines[1] = string.sub(
       context_line_before .. suggestion_lines[1] .. context_line_after,
@@ -42,7 +44,7 @@ local function render()
     )
   end
 
-  virtual_text.render(suggestion_lines)
+  virtual_text.render(suggestion_lines, context_col)
 end
 
 ---@param done boolean
@@ -197,6 +199,7 @@ local function get()
         context_line_before = string.sub(context_line, 0, col - 1)
         context_line_after = string.sub(context_line, col)
         context_row = row
+        context_col = col
 
         local prompt = get_prompt(prefix, suffix)
 
@@ -208,14 +211,19 @@ local function get()
   end
 end
 
+---@param inserting boolean
 ---@return boolean
-local function contains_context()
+local function contains_context(inserting)
   if vim.fn.line(".") ~= context_row then
     return false
   end
 
   local current_line = vim.api.nvim_get_current_line()
-  current_line = string.sub(current_line, 1, vim.fn.col("."))
+  local col = vim.fn.col(".")
+  current_line = string.sub(current_line, 1, col)
+  if inserting then
+    context_col = col
+  end
 
   local suggestion_lines = vim.split(current_suggestion, "\n")
 

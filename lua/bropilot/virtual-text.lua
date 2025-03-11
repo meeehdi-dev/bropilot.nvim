@@ -9,7 +9,8 @@ local function clear()
 end
 
 ---@param lines string[]
-local function render(lines)
+---@param col number
+local function render(lines, col)
   clear()
 
   if #lines == 0 then
@@ -35,7 +36,7 @@ local function render(lines)
     0,
     ns_id,
     vim.fn.line(".") - 1,
-    vim.fn.col(".") - 1,
+    col - 1,
     extmark_opts
   )
 end

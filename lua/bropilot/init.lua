@@ -26,9 +26,9 @@ local function setup(opts)
     })
   end
 
-  vim.api.nvim_create_autocmd({ "TextChangedI", "CursorMovedI" }, {
+  vim.api.nvim_create_autocmd({ "TextChangedI" }, {
     callback = function()
-      if suggestion.contains_context() then
+      if suggestion.contains_context(true) then
         suggestion.render()
         return
       end
@@ -39,6 +39,15 @@ local function setup(opts)
         and not util.contains(bro_opts.excluded_filetypes, vim.bo.filetype)
       then
         suggestion.get()
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "CursorMovedI" }, {
+    callback = function()
+      if suggestion.contains_context(false) then
+        suggestion.render()
+        return
       end
     end,
   })
