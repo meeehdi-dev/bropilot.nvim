@@ -275,8 +275,8 @@ local function accept_word()
       string.sub(suggestion_lines[1], word_end - #context_line_before)
   end
   if word_end == nil then
+    word_end = #context_line_before + #suggestion_lines[1] + 1
     suggestion_lines[1] = ""
-    word_end = #current_line + 1
   end
 
   context_line_before = string.sub(current_line, 0, word_end - 1)
