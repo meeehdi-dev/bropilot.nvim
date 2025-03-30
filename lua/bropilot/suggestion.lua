@@ -289,6 +289,8 @@ local function accept_word()
   util.set_lines(line - 1, line, insert_lines)
   util.set_cursor(line + #insert_lines - 1, #context_line_before)
 
+  context_col = #context_line_before
+
   current_suggestion = util.join(suggestion_lines, "\n")
 
   return true
@@ -328,6 +330,8 @@ local function accept_line()
     line + #insert_lines - 1,
     #(context_line_before .. suggestion_lines[1])
   )
+
+  context_col = #(context_line_before .. suggestion_lines[1])
 
   context_line_before = context_line_before .. suggestion_lines[1]
   suggestion_lines[1] = ""
@@ -393,6 +397,8 @@ local function accept_block()
   context_line_before = block_lines[#block_lines]
   context_line_after = ""
   context_row = line - 1 + #block_lines
+
+  context_col = #block_lines[#block_lines]
 
   return true
 end
