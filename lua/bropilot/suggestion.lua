@@ -90,8 +90,8 @@ end
 
 ---@param prefix string
 ---@param suffix string
----@return string
-local function get_prompt(prefix, suffix)
+---@return { prefix: string; suffix: string }
+local function get_context(prefix, suffix)
   local opts = options.get()
   local num_ctx = opts.model_params.num_ctx
 
@@ -134,11 +134,7 @@ local function get_prompt(prefix, suffix)
     end
   end
 
-  return opts.prompt.prefix
-    .. prefix
-    .. opts.prompt.suffix
-    .. suffix
-    .. opts.prompt.middle
+  return { prefix = prefix, suffix = suffix }
 end
 
 local function get()
@@ -201,9 +197,9 @@ local function get()
         context_row = row
         context_col = col
 
-        local prompt = get_prompt(prefix, suffix)
+        local ctx = get_context(prefix, suffix)
 
-        ollama.generate(prompt, on_data)
+        ollama.generate(ctx.prefix, ctx.suffix, on_data)
       end)
     end) == 0
   then

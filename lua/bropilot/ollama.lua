@@ -205,7 +205,7 @@ local function cancel(pid)
   end
 end
 
-local function generate(prompt, cb)
+local function generate(prefix, suffix, cb)
   local opts = options.get()
 
   local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
@@ -214,7 +214,8 @@ local function generate(prompt, cb)
     body = vim.json.encode({
       model = opts.model,
       options = opts.model_params,
-      prompt = prompt,
+      prompt = prefix,
+      suffix = suffix,
     }),
     on_error = function(err)
       if current_suggestion_pid ~= suggestion_job_pid then
