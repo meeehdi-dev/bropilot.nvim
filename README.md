@@ -1,5 +1,8 @@
 # Bropilot.nvim
 
+<p align="center">
+  <img src="https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/3a576c3d-7215-46cc-bfd5-150f33986996" />
+</p>
 
 Bropilot is a [GitHub Copilot](https://github.com/github/copilot.vim) alternative that takes advantage of local LLMs through [Ollama](https://ollama.com/)'s API.
 
@@ -11,9 +14,7 @@ Current working models:
 - codellama
 - ~~codegemma~~ (doesn't seem to work anymore... https://github.com/ollama/ollama/issues/4806)
 
-
-![image](https://github.com/meeehdi-dev/bropilot.nvim/assets/3422399/3a576c3d-7215-46cc-bfd5-150f33986996)
-
+> Thanks to [@hieutran21198](https://github.com/hieutran21198), here's a [list of most compatible models and their associated FIM tokens](https://github.com/hieutran21198/ai-agent-models) for easier configuration
 
 ## Setup
 
