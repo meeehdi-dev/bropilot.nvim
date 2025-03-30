@@ -1,7 +1,7 @@
 local async = require("plenary.async")
 local util = require("bropilot.util")
 local virtual_text = require("bropilot.virtual-text")
-local ollama = require("bropilot.ollama")
+local codestral = require("bropilot.codestral")
 local options = require("bropilot.options")
 
 local current_suggestion = ""
@@ -19,7 +19,7 @@ local function cancel()
     debounce_timer:close()
     debounce_timer = nil
   end
-  ollama.cancel()
+  codestral.cancel()
   current_suggestion = ""
   virtual_text.clear()
 end
@@ -146,12 +146,6 @@ local function get()
     return
   end
 
-  if not ollama.is_ready() then
-    ollama.init(function()
-      get()
-    end)
-  end
-
   if debounce_timer then
     debounce_timer:stop()
     debounce_timer:close()
@@ -201,9 +195,7 @@ local function get()
         context_row = row
         context_col = col
 
-        local prompt = get_prompt(prefix, suffix)
-
-        ollama.generate(prompt, on_data)
+        codestral.generate(prefix, suffix, on_data)
       end)
     end) == 0
   then
