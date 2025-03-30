@@ -9,11 +9,12 @@ local default_opts = {
   excluded_filetypes = {},
   model = "qwen2.5-coder:0.5b-base",
   model_params = {
-    num_ctx = 8192,
+    num_ctx = 32768,
     num_predict = -1,
-    temperature = 0.2,
+    temperature = 0,
     top_p = 0.95,
-    stop = { "<|fim_pad|>", "<|endoftext|>" },
+    max_tokens = 64,
+    stop = { "<|fim_pad|>", "<|endoftext|>", "\n\n" },
   },
   prompt = {
     prefix = "<|fim_prefix|>",
