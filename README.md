@@ -32,6 +32,8 @@ systemctl status ollama
 
 Here is the default configuration.
 
+- `provider` is a string defining the provider to use (currently only `ollama` and `codestral` are supported)
+- `api_key` is a string defining the API key to use for the 'codestral' provider
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
 - `excluded_filetypes` is an array of filetypes ignored by the `auto_suggest` option (https://github.com/meeehdi-dev/bropilot.nvim/pull/1)
 - `model` is a string (e.g. "codellama:7b-code" or "codegemma:2b-code")
@@ -42,16 +44,16 @@ Here is the default configuration.
 
 ```lua
 require('bropilot').setup({
+  provider = "ollama",
   auto_suggest = true,
   excluded_filetypes = {},
   model = "qwen2.5-coder:0.5b-base",
   model_params = {
     num_ctx = 32768,
-    num_ctx = 8192,
     num_predict = -2,
     temperature = 0.2,
     top_p = 0.95,
-    stop = { "<|fim_pad|>", "<|endoftext|>" },
+    stop = { "<|fim_pad|>", "<|endoftext|>", "\n\n" },
   },
   prompt = {
     prefix = "<|fim_prefix|>",
@@ -102,6 +104,24 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       keymap = {
         accept_line = "<M-Right>",
       },
+    },
+    config = function (_, opts)
+        require("bropilot").setup(opts)
+    end,
+  }
+  -- or
+  {
+    'meeehdi-dev/bropilot.nvim',
+    event = "VeryLazy", -- preload model on start
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "j-hui/fidget.nvim",
+    },
+    opts = {
+      provider = "codestral",
+      api_key = "<CODESTRAL_API_KEY>",
+      auto_suggest = false,
+      debounce = 1,
     },
     config = function (_, opts)
         require("bropilot").setup(opts)
