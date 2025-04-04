@@ -6,6 +6,14 @@ local options = require("bropilot.options")
 local current_suggestion_pid = nil
 local suggestion_handles = {}
 
+local function is_ready()
+  return true
+end
+
+local function init(cb)
+  cb()
+end
+
 ---@param pid number | nil
 local function cancel(pid)
   if pid == nil then
@@ -23,6 +31,9 @@ local function cancel(pid)
   end
 end
 
+---@param before string
+---@param after string
+---@param cb function
 local function generate(before, after, cb)
   local opts = options.get()
 
@@ -97,4 +108,6 @@ end
 return {
   cancel = cancel,
   generate = generate,
+  is_ready = is_ready,
+  init = init,
 }
