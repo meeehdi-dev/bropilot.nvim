@@ -32,10 +32,15 @@ local function render(lines, col)
     extmark_opts.virt_lines = virt_lines
   end
 
+  line = vim.fn.line(".")
+  col_count = vim.fn.strlen(vim.fn.getline(l))
+  if col > col_count then
+    col = col_count
+  end
   extmark_id = vim.api.nvim_buf_set_extmark(
     0,
     ns_id,
-    vim.fn.line(".") - 1,
+    line - 1,
     col - 1,
     extmark_opts
   )
