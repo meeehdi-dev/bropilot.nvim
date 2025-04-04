@@ -32,18 +32,14 @@ local function render(lines, col)
     extmark_opts.virt_lines = virt_lines
   end
 
-  line = vim.fn.line(".")
-  col_count = vim.fn.strlen(vim.fn.getline(l))
-  if col > col_count then
-    col = col_count
+  local line = vim.fn.line(".")
+  local current_line = vim.api.nvim_get_current_line()
+  local col_count = #current_line
+  if col > col_count + 1 then
+    col = col_count + 1
   end
-  extmark_id = vim.api.nvim_buf_set_extmark(
-    0,
-    ns_id,
-    line - 1,
-    col - 1,
-    extmark_opts
-  )
+  extmark_id =
+    vim.api.nvim_buf_set_extmark(0, ns_id, line - 1, col - 1, extmark_opts)
 end
 
 return {
