@@ -1,10 +1,11 @@
 ---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: string[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number, min_p?: number }
 ---@alias ModelPrompt { prefix: string, suffix: string, middle: string }
 ---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string, suggest: string }
----@alias BroOptions { auto_suggest?: boolean, excluded_filetypes?: string[], model: string, model_params?: ModelParams, prompt?: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
+---@alias BroOptions { provider: "ollama" | "codestral", api_key?: string, auto_suggest?: boolean, excluded_filetypes?: string[], model?: string, model_params?: ModelParams, prompt?: ModelPrompt, debounce: number, keymap: KeymapParams, ollama_url: string }
 
 ---@type BroOptions
 local default_opts = {
+  provider = "ollama",
   auto_suggest = true,
   excluded_filetypes = {},
   model = "qwen2.5-coder:0.5b-base",
@@ -38,11 +39,6 @@ local current_opts
 ---@return BroOptions | boolean
 local function set(opts)
   current_opts = vim.tbl_deep_extend("force", default_opts, opts or {})
-
-  -- assert prompt
-  if not current_opts.prompt then
-    return false
-  end
 
   return true
 end
