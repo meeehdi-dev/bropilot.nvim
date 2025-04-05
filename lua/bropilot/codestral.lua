@@ -2,6 +2,7 @@ local async = require("plenary.async")
 local curl = require("plenary.curl")
 local util = require("bropilot.util")
 local options = require("bropilot.options")
+local llm = require("bropilot.llm")
 
 local current_suggestion_pid = nil
 local suggestion_handles = {}
@@ -37,6 +38,8 @@ end
 local function generate(before, after, cb)
   local opts = options.get()
 
+  local truncated = llm.truncate(before, after, 32768) -- codestral context length
+
   local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   local suggestion_job_pid = nil
   local suggestion_job =
@@ -48,8 +51,8 @@ local function generate(before, after, cb)
       },
       body = vim.json.encode({
         model = "codestral-latest",
-        prompt = before,
-        suffix = after,
+        prompt = truncated.prefix,
+        suffix = truncated.suffix,
         stop = "\n\n",
         max_tokens = "64",
         temperature = "0",
