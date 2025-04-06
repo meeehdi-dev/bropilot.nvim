@@ -2,7 +2,7 @@ local options = require("bropilot.options")
 local suggestion = require("bropilot.suggestion")
 
 ---@param keycode string | nil
----@param cb function
+---@param cb fun(): boolean
 local function set(keycode, cb)
   if not keycode then
     return

@@ -16,7 +16,7 @@ local function is_ready()
   return not initializing and ready
 end
 
----@param cb function
+---@param cb fun(found: boolean)
 local function find_model(cb)
   local opts = options.get()
 
@@ -45,7 +45,7 @@ local function find_model(cb)
   })
 end
 
----@param cb function | nil
+---@param cb fun() | nil
 local function pull_model(cb)
   local opts = options.get()
 
@@ -120,7 +120,7 @@ local function pull_model(cb)
   })
 end
 
----@param cb function
+---@param cb fun()
 local function preload_model(cb)
   local opts = options.get()
 
@@ -157,9 +157,9 @@ local function preload_model(cb)
   })
 end
 
----@type function | nil
+---@type fun() | nil
 local init_callback = nil
----@param cb function | nil
+---@param cb fun() | nil
 local function init(cb)
   init_callback = cb
   if ready or initializing then
@@ -221,7 +221,7 @@ end
 
 ---@param before string
 ---@param after string
----@param cb function
+---@param cb fun(done: boolean, response?: string)
 local function generate(before, after, cb)
   local opts = options.get()
   local num_ctx = opts.model_params.num_ctx

@@ -34,7 +34,7 @@ end
 
 ---@param before string
 ---@param after string
----@param cb function
+---@param cb fun(done: boolean, response?: string)
 local function generate(before, after, cb)
   local opts = options.get()
 

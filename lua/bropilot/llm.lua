@@ -54,7 +54,7 @@ end
 
 ---@param before string
 ---@param after string
----@param cb function
+---@param cb fun()
 local function generate(before, after, cb)
   return provider.get().generate(before, after, cb)
 end
