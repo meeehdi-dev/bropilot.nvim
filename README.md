@@ -47,7 +47,7 @@ require('bropilot').setup({
   provider = "ollama",
   auto_suggest = true,
   excluded_filetypes = {},
-  model = "qwen2.5-coder:0.5b-base",
+  model = "qwen2.5-coder:0.5b",
   model_params = {
     num_ctx = 32768,
     num_predict = -2,
