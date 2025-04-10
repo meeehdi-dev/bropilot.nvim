@@ -7,7 +7,7 @@ local util = require("bropilot.util")
 local function setup(opts)
   local ok = options.set(opts)
   if not ok then
-    vim.notify("invalid configuration", vim.log.levels.ERROR)
+    vim.notify("invalid bropilot configuration", vim.log.levels.ERROR)
     return
   end
 
