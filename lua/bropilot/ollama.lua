@@ -206,19 +206,6 @@ local function cancel(pid)
   end
 end
 
----@param prefix string
----@param suffix string
----@return string
-local function get_prompt(prefix, suffix)
-  local opts = options.get()
-
-  return opts.prompt.prefix
-    .. prefix
-    .. opts.prompt.suffix
-    .. suffix
-    .. opts.prompt.middle
-end
-
 ---@param before string
 ---@param after string
 ---@param cb fun(done: boolean, response?: string)
@@ -227,7 +214,6 @@ local function generate(before, after, cb)
   local num_ctx = opts.model_params.num_ctx
 
   local truncated = llm.truncate(before, after, num_ctx or 8192)
-  local prompt = get_prompt(truncated.prefix, truncated.suffix)
 
   local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   local suggestion_job_pid = nil
@@ -235,7 +221,8 @@ local function generate(before, after, cb)
     body = vim.json.encode({
       model = opts.model,
       options = opts.model_params,
-      prompt = prompt,
+      prompt = truncated.prefix,
+      suffix = truncated.suffix,
     }),
     on_error = function(err)
       if current_suggestion_pid ~= suggestion_job_pid then
