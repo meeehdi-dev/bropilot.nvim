@@ -106,8 +106,12 @@ local function get()
     return
   end
 
-  if debounce <= 0 then
-    debounce = opts.debounce
+  if opts.auto_suggest then
+    debounce = 1
+  else
+    if debounce <= 0 then
+      debounce = opts.debounce
+    end
   end
 
   if
@@ -115,7 +119,7 @@ local function get()
       debounce_timer = nil
       async.util.scheduler(function()
         if debounce > 0 then
-          debounce = debounce * 1.5
+          debounce = debounce * 2
         end
 
         local row = vim.fn.line(".")
