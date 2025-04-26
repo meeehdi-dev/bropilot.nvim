@@ -237,6 +237,8 @@ local function accept_word()
 
   current_suggestion = util.join(suggestion_lines, "\n")
 
+  llm.accept(current_suggestion)
+
   return true
 end
 
@@ -281,6 +283,8 @@ local function accept_line()
   suggestion_lines[1] = ""
   current_suggestion = util.join(suggestion_lines, "\n")
 
+  llm.accept(current_suggestion)
+
   return true
 end
 
@@ -291,7 +295,7 @@ local function accept_block()
   end
 
   if current_suggestion == "" or current_suggestion == "\n" then
-    return false
+    return llm.accept_next()
   end
 
   add_undo_breakpoint()
@@ -343,6 +347,8 @@ local function accept_block()
   context_row = line - 1 + #block_lines
 
   context_col = #block_lines[#block_lines]
+
+  llm.accept(current_suggestion)
 
   return true
 end

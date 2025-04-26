@@ -50,6 +50,7 @@ local function trim(text)
 end
 
 ---@param title string
+---@return ProgressHandle
 local function get_progress_handle(title)
   return progress.handle.create({
     title = title,

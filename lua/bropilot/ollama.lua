@@ -8,8 +8,9 @@ local llm = require("bropilot.llm")
 local ready = false
 ---@type boolean
 local initializing = false
-
+---@type number | nil
 local current_suggestion_pid = nil
+---@type table<number, {job: Job, progress: ProgressHandle}>
 local suggestion_handles = {}
 
 local function is_ready()
