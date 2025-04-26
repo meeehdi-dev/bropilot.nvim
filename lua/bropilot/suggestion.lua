@@ -92,6 +92,7 @@ local function get()
     llm.init(function()
       get()
     end)
+    return
   end
 
   if debounce_timer then
@@ -153,6 +154,17 @@ local function get()
   then
     debounce_timer = timer
   end
+end
+
+local function get_next()
+  if not llm.is_ready() then
+    llm.init(function()
+      get_next()
+    end)
+    return
+  end
+
+  llm.generate_next()
 end
 
 ---@param inserting boolean
@@ -360,5 +372,6 @@ return {
   cancel = cancel,
   contains_context = contains_context,
   get = get,
+  get_next = get_next,
   render = render,
 }

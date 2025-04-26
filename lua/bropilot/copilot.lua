@@ -194,7 +194,7 @@ local function cancel(rid)
   end
 end
 
-local function generateNext()
+local function generate_next()
   if copilot == nil then
     vim.notify("copilot lsp client not active", vim.log.levels.ERROR)
     return
@@ -344,7 +344,7 @@ local function accept(suggestion_left)
           vim.notify(err.message, vim.log.levels.ERROR)
           return
         end
-        generateNext()
+        generate_next()
       end)
       current_suggestion_rid = nil
     else
@@ -353,7 +353,11 @@ local function accept(suggestion_left)
         acceptedLength = accepted_length,
       })
     end
+
+    return true
   end
+
+  return false
 end
 
 local function accept_next()
@@ -391,15 +395,17 @@ local function accept_next()
 
     copilot:exec_cmd(items[1].command)
     current_suggestion_rid = nil
-    generateNext()
+    generate_next()
     return true
   end
+
   return false
 end
 
 return {
   cancel = cancel,
   generate = generate,
+  generate_next = generate_next,
   is_ready = is_ready,
   init = init,
   accept = accept,

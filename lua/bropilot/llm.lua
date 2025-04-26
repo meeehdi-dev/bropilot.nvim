@@ -59,6 +59,10 @@ local function generate(before, after, cb)
   return provider.get().generate(before, after, cb)
 end
 
+local function generate_next()
+  return provider.get().generate_next()
+end
+
 local function is_ready()
   return provider.get().is_ready()
 end
@@ -85,6 +89,7 @@ end
 
 return {
   generate = generate,
+  generate_next = generate_next,
   cancel = cancel,
   is_ready = is_ready,
   init = init,
