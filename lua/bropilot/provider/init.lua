@@ -5,7 +5,7 @@ local options = require("bropilot.options")
 ---@return Provider
 local function get()
   local opts = options.get()
-  return require("bropilot." .. opts.provider)
+  return require("bropilot.provider." .. opts.provider)
 end
 
 return { get = get }

@@ -1,4 +1,5 @@
 local util = require("bropilot.util")
+local handlers = require("bropilot.provider.copilot.handlers")
 local _ = require("fidget.progress") -- progress handle type
 
 ---@type boolean
@@ -15,107 +16,46 @@ local copilot = nil
 local ns_id = vim.api.nvim_create_namespace("bropilot-next")
 local extmark_ids = {}
 
+local function sign_in(err, res, ctx)
+  if err then
+    vim.notify(err, vim.log.levels.ERROR)
+    return
+  end
+  vim.notify("signIn")
+  -- vim.print(res)
+
+  if res.status == "AlreadySignedIn" then
+    vim.notify("Already logged in as " .. res.user, vim.log.levels.INFO)
+  end
+
+  if res.status == "SignedOut" then
+    if copilot == nil then
+      vim.notify("copilot lsp client not active", vim.log.levels.ERROR)
+      return
+    end
+    vim.fn.setreg("*", res.userCode) -- copy code to system clipboard
+    -- TODO: tell user to paste code into browser
+    copilot:exec_cmd(res.command, nil, function(cmd_err, cmd_res)
+      if cmd_err then
+        vim.notify(cmd_err.message, vim.log.levels.ERROR)
+        return
+      end
+      if res.status == "loggedIn" then
+        vim.notify(
+          "Successfully logged in as " .. cmd_res.user,
+          vim.log.levels.INFO
+        )
+      end
+    end)
+  end
+end
+
 local function clear()
   for _, extmark_id in ipairs(extmark_ids) do
     vim.api.nvim_buf_del_extmark(0, ns_id, extmark_id)
   end
   extmark_ids = {}
 end
-
--- TODO: move handlers to separate file
-local handlers = {
-  ["didChangeStatus"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    vim.notify("didChangeStatus")
-    -- vim.print(res)
-  end,
-  ["statusNotification"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    vim.notify("statusNotification")
-    -- vim.print(res)
-  end,
-  ["workspace/configuration"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    vim.notify("workspace/configuration")
-    -- vim.print(res)
-    return true
-  end,
-  ["window/logMessage"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    -- vim.notify("window/logMessage")
-    -- vim.print(res)
-    vim.notify(res.message, vim.log.levels[res.type])
-  end,
-  ["window/showDocument"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    vim.notify("window/showDocument")
-    -- vim.print(res)
-  end,
-  ["conversation/preconditionsNotification"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    vim.notify("conversation/preconditionsNotification")
-    -- vim.print(res)
-  end,
-  ["featureFlagsNotification"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    vim.notify("featureFlagsNotification")
-    -- vim.print(res)
-  end,
-  ["signIn"] = function(err, res, ctx)
-    if err then
-      vim.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    vim.notify("signIn")
-    -- vim.print(res)
-
-    if res.status == "AlreadySignedIn" then
-      vim.notify("Already logged in as " .. res.user, vim.log.levels.INFO)
-    end
-
-    if res.status == "SignedOut" then
-      if copilot == nil then
-        vim.notify("copilot lsp client not active", vim.log.levels.ERROR)
-        return
-      end
-      vim.fn.setreg("*", res.userCode) -- copy code to system clipboard
-      -- TODO: tell user to paste code into browser
-      copilot:exec_cmd(res.command, nil, function(cmd_err, cmd_res)
-        if cmd_err then
-          vim.notify(cmd_err.message, vim.log.levels.ERROR)
-          return
-        end
-        if res.status == "loggedIn" then
-          vim.notify(
-            "Successfully logged in as " .. cmd_res.user,
-            vim.log.levels.INFO
-          )
-        end
-      end)
-    end
-  end,
-}
 
 local function is_ready()
   return not initializing and ready
@@ -153,6 +93,9 @@ local function init(cb)
     },
     handlers = setmetatable({}, {
       __index = function(_, method)
+        if method == "signIn" then
+          return sign_in
+        end
         if handlers[method] then
           return handlers[method]
         end
