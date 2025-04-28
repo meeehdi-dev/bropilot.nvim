@@ -33,8 +33,59 @@ local function sign_in(err, res, ctx)
       vim.notify("copilot lsp client not active", vim.log.levels.ERROR)
       return
     end
-    vim.fn.setreg("*", res.userCode) -- copy code to system clipboard
-    -- TODO: tell user to paste code into browser
+
+    local float_buf_id = vim.api.nvim_create_buf(false, true)
+
+    local lines = {
+      "[Copilot] Please paste this code in your browser to sign in:",
+      res.userCode,
+      "(press y to copy to your clipboard)",
+    }
+    local max_len = 0
+    for _, line in ipairs(lines) do
+      local len = #line
+      if len > max_len then
+        max_len = len
+      end
+    end
+    for i, line in ipairs(lines) do
+      local len = #line
+      if len < max_len then
+        lines[i] = string.rep(" ", (max_len - len) / 2) .. line
+      end
+    end
+
+    vim.api.nvim_buf_set_lines(float_buf_id, 0, -1, true, lines)
+
+    local win_id = vim.api.nvim_get_current_win()
+    local win_width = vim.api.nvim_win_get_width(win_id)
+    local win_height = vim.api.nvim_win_get_height(win_id)
+
+    local float_win_id = vim.api.nvim_open_win(float_buf_id, false, {
+      relative = "win",
+      win = win_id,
+      row = win_height / 2 - 1,
+      col = win_width / 2 - math.floor(max_len / 2),
+      width = max_len,
+      height = 3,
+      style = "minimal",
+      noautocmd = true,
+    })
+
+    vim.cmd.redraw()
+    -- wait for a valid input
+    local c = vim.fn.getchar()
+    while type(c) ~= "number" do
+      c = vim.fn.getchar()
+    end
+    local resp = (vim.fn.nr2char(c) or ""):upper()
+    if resp == "y" then
+      vim.fn.setreg("*", res.userCode) -- copy code to system clipboard
+    end
+
+    vim.api.nvim_win_close(float_win_id, true)
+    vim.api.nvim_buf_delete(float_buf_id, { force = true })
+
     copilot:exec_cmd(res.command, nil, function(cmd_err, cmd_res)
       if cmd_err then
         vim.notify(cmd_err.message, vim.log.levels.ERROR)
