@@ -158,7 +158,7 @@ local function init(cb)
 
       copilot:request("signIn", vim.empty_dict())
 
-      vim.api.nvim_create_autocmd("BufEnter", {
+      vim.api.nvim_create_autocmd("BufReadPost", {
         callback = function(ev)
           if ev.file == "" then
             return
@@ -205,6 +205,7 @@ local function init(cb)
               uri = ev.file,
               version = vim.lsp.util.buf_versions[ev.buf],
             },
+            contentChanges = { { text = util.join(util.get_lines(0), "\n") } },
           })
         end,
       })
