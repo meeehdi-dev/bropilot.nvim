@@ -1,3 +1,11 @@
+local lsp_log_type_map = {
+  [1] = vim.log.levels.ERROR,
+  [2] = vim.log.levels.WARN,
+  [3] = vim.log.levels.INFO,
+  [4] = nil, -- log
+  [5] = vim.log.levels.DEBUG,
+}
+
 return {
   ["didChangeStatus"] = function(err, res, ctx)
     if err then
@@ -29,9 +37,7 @@ return {
       vim.notify(err, vim.log.levels.ERROR)
       return
     end
-    -- vim.notify("window/logMessage")
-    -- vim.print(res)
-    vim.notify(res.message, vim.log.levels[res.type])
+    vim.notify(res.message, lsp_log_type_map[res.type])
   end,
   ["window/showDocument"] = function(err, res, ctx)
     if err then
