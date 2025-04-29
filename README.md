@@ -27,10 +27,9 @@ When copilot is initialized for the first time, it'll ask you to sign in by gene
 
 ### Next edit suggestions
 
-Thanks to Github's copilot LSP and the work of @Tris203 and @Xuyuanp on https://github.com/copilotlsp-nvim/copilot-lsp
-If you use copilot as the provider, whenever you accept a suggestion, a request is sent to the LSP to ask for next edit suggestions.
+Thanks to Github's copilot LSP and the work of [@Tris203](https://github.com/tris203) and [@Xuyuanp](https://github.com/Xuyuanp) on https://github.com/copilotlsp-nvim/copilot-lsp, if you use copilot as the provider, whenever you accept a suggestion, a request is sent to the LSP to ask for next edit suggestions.
 You can also set a keymap to force a request.
-Please note that it is very experimental at the moment.
+⚠️ Please note that it is very experimental at the moment.
 
 ## Setup
 
