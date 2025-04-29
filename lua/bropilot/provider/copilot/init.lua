@@ -160,12 +160,22 @@ local function init(cb)
 
       vim.api.nvim_create_autocmd("BufEnter", {
         callback = function(ev)
-          local position_params = vim.lsp.util.make_position_params(ev.buf, "utf-16")
-          copilot:notify("textDocument/didOpen", position_params)
+          if ev.file == "" then
+            return
+          end
+          copilot:notify("textDocument/didOpen", {
+            textDocument = {
+              uri = ev.file,
+              version = vim.lsp.util.buf_versions[ev.buf],
+            },
+          })
         end,
       })
       vim.api.nvim_create_autocmd("BufDelete", {
         callback = function(ev)
+          if ev.file == "" then
+            return
+          end
           copilot:notify("textDocument/didClose", {
             textDocument = {
               uri = ev.file,
@@ -175,6 +185,9 @@ local function init(cb)
       })
       vim.api.nvim_create_autocmd("WinEnter", {
         callback = function(ev)
+          if ev.file == "" then
+            return
+          end
           copilot:notify("textDocument/didFocus", {
             textDocument = {
               uri = ev.file,
@@ -184,6 +197,9 @@ local function init(cb)
       })
       vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
         callback = function(ev)
+          if ev.file == "" then
+            return
+          end
           copilot:notify("textDocument/didChange", {
             textDocument = {
               uri = ev.file,
