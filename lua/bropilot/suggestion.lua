@@ -92,6 +92,7 @@ local function get()
     llm.init(function()
       get()
     end)
+    return
   end
 
   if debounce_timer then
@@ -153,6 +154,17 @@ local function get()
   then
     debounce_timer = timer
   end
+end
+
+local function get_next()
+  if not llm.is_ready() then
+    llm.init(function()
+      get_next()
+    end)
+    return
+  end
+
+  llm.generate_next()
 end
 
 ---@param inserting boolean
@@ -237,6 +249,8 @@ local function accept_word()
 
   current_suggestion = util.join(suggestion_lines, "\n")
 
+  llm.accept(current_suggestion)
+
   return true
 end
 
@@ -281,6 +295,8 @@ local function accept_line()
   suggestion_lines[1] = ""
   current_suggestion = util.join(suggestion_lines, "\n")
 
+  llm.accept(current_suggestion)
+
   return true
 end
 
@@ -291,7 +307,7 @@ local function accept_block()
   end
 
   if current_suggestion == "" or current_suggestion == "\n" then
-    return false
+    return llm.accept_next()
   end
 
   add_undo_breakpoint()
@@ -344,6 +360,8 @@ local function accept_block()
 
   context_col = #block_lines[#block_lines]
 
+  llm.accept(current_suggestion)
+
   return true
 end
 
@@ -354,5 +372,6 @@ return {
   cancel = cancel,
   contains_context = contains_context,
   get = get,
+  get_next = get_next,
   render = render,
 }

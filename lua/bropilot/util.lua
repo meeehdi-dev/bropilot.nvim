@@ -20,7 +20,11 @@ end
 ---@param end_ number
 ---@param lines string[]
 local function set_lines(start, end_, lines)
+  vim.g.bropilot = true
   vim.api.nvim_buf_set_lines(0, start, end_, true, lines)
+  vim.defer_fn(function()
+    vim.g.bropilot = false
+  end, 10)
 end
 
 ---@param array string[]
@@ -50,6 +54,7 @@ local function trim(text)
 end
 
 ---@param title string
+---@return ProgressHandle
 local function get_progress_handle(title)
   return progress.handle.create({
     title = title,

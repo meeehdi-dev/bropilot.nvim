@@ -31,6 +31,11 @@ local function init()
     suggestion.get()
     return true
   end)
+  set(opts.keymap.suggest_next, function()
+    suggestion.cancel()
+    suggestion.get_next()
+    return true
+  end)
 end
 
 return {
