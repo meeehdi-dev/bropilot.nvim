@@ -333,7 +333,7 @@ local function generate(before, after, cb)
   end
 
   local cursor = vim.api.nvim_win_get_cursor(0)
-  -- local line = cursor[1] - 1
+  local row = cursor[1] - 1
   local col = cursor[2]
   local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   local position_params = vim.lsp.util.make_position_params(0, "utf-16")
@@ -348,7 +348,11 @@ local function generate(before, after, cb)
         return
       end
       if #res.items > 0 then
-        cb(false, string.sub(res.items[1].insertText, col + 1)) -- remove start of line bc copilot send the whole line
+        local current_line = util.get_lines(row, row + 1)[1]
+        cb(
+          false,
+          string.sub(res.items[1].insertText, col + 1, col + #res.items[1].insertText - #current_line)
+        ) -- remove start of line bc copilot send the whole line
         if
           current_suggestion_rid and suggestion_handles[current_suggestion_rid]
         then
