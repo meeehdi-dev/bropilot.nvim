@@ -165,7 +165,7 @@ local function init(cb)
           end
           copilot:notify("textDocument/didOpen", {
             textDocument = {
-              uri = ev.file,
+              uri = "file://" .. vim.fn.getcwd() .. "/" .. ev.file,
               version = vim.lsp.util.buf_versions[ev.buf],
             },
           })
@@ -178,7 +178,7 @@ local function init(cb)
           end
           copilot:notify("textDocument/didClose", {
             textDocument = {
-              uri = ev.file,
+              uri = "file://" .. ev.file,
             },
           })
         end,
@@ -190,7 +190,7 @@ local function init(cb)
           end
           copilot:notify("textDocument/didFocus", {
             textDocument = {
-              uri = ev.file,
+              uri = "file://" .. ev.file,
             },
           })
         end,
@@ -202,7 +202,7 @@ local function init(cb)
           end
           copilot:notify("textDocument/didChange", {
             textDocument = {
-              uri = ev.file,
+              uri = "file://" .. ev.file,
               version = vim.lsp.util.buf_versions[ev.buf],
             },
             contentChanges = { { text = util.join(util.get_lines(0), "\n") } },
@@ -351,8 +351,12 @@ local function generate(before, after, cb)
         local current_line = util.get_lines(row, row + 1)[1]
         cb(
           false,
-          string.sub(res.items[1].insertText, col + 1, col + #res.items[1].insertText - #current_line)
-        ) -- remove start of line bc copilot send the whole line
+          string.sub(
+            res.items[1].insertText,
+            col + 1,
+            col + #res.items[1].insertText - #current_line
+          )
+        ) -- remove start of line bc copilot sends the whole line + truncate end of line if in the middle
         if
           current_suggestion_rid and suggestion_handles[current_suggestion_rid]
         then
