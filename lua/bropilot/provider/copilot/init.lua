@@ -112,6 +112,10 @@ local function is_ready()
   return not initializing and ready
 end
 
+local function file_exists(file)
+  return vim.fn.filereadable(file) == 1
+end
+
 ---@type fun() | nil
 local init_callback = nil
 ---@param cb fun() | nil
@@ -160,7 +164,7 @@ local function init(cb)
 
       vim.api.nvim_create_autocmd("BufReadPost", {
         callback = function(ev)
-          if ev.file == "" then
+          if not file_exists(ev.file) then
             return
           end
           copilot:notify("textDocument/didOpen", {
@@ -173,7 +177,7 @@ local function init(cb)
       })
       vim.api.nvim_create_autocmd("BufDelete", {
         callback = function(ev)
-          if ev.file == "" then
+          if not file_exists(ev.file) then
             return
           end
           copilot:notify("textDocument/didClose", {
@@ -185,7 +189,7 @@ local function init(cb)
       })
       vim.api.nvim_create_autocmd("WinEnter", {
         callback = function(ev)
-          if ev.file == "" then
+          if not file_exists(ev.file) then
             return
           end
           copilot:notify("textDocument/didFocus", {
@@ -197,7 +201,7 @@ local function init(cb)
       })
       vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
         callback = function(ev)
-          if ev.file == "" then
+          if not file_exists(ev.file) then
             return
           end
           copilot:notify("textDocument/didChange", {
