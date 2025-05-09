@@ -52,8 +52,7 @@ return {
       vim.notify(err, vim.log.levels.ERROR)
       return
     end
-    vim.notify("window/showDocument")
-    -- vim.print(res)
+    vim.notify("window/showDocument", vim.log.levels.INFO)
   end,
   ["conversation/preconditionsNotification"] = function(err, res, ctx)
     if err then
@@ -61,14 +60,12 @@ return {
       return
     end
     vim.notify("conversation/preconditionsNotification")
-    -- vim.print(res)
   end,
   ["featureFlagsNotification"] = function(err, res, ctx)
     if err then
       vim.notify(err, vim.log.levels.ERROR)
       return
     end
-    vim.notify("featureFlagsNotification")
-    -- vim.print(res)
+    vim.notify("featureFlagsNotification", vim.log.levels.INFO)
   end,
 }
