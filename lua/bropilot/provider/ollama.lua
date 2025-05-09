@@ -193,7 +193,10 @@ local function cancel(pid)
   end
 
   if pid == nil then
-    pid = current_suggestion_pid
+    if current_suggestion_pid ~= nil then
+      cancel(current_suggestion_pid)
+    end
+    return
   end
 
   if pid and suggestion_handles[pid] then

@@ -8,8 +8,12 @@ local ready = false
 local initializing = false
 ---@type number | nil
 local current_suggestion_rid = nil
+---@type number | nil
+local next_suggestion_rid = nil
 ---@type table<number, {progress: ProgressHandle, items: any[]}>
-local suggestion_handles = {}
+local current_suggestion_handles = {}
+---@type table<number, {progress: ProgressHandle, items: any[]}>
+local next_suggestion_handles = {}
 ---@type vim.lsp.Client | nil
 local copilot = nil
 
@@ -227,11 +231,17 @@ local function cancel(rid)
   clear()
 
   if rid == nil then
-    rid = current_suggestion_rid
+    if current_suggestion_rid ~= nil then
+      cancel(current_suggestion_rid)
+    end
+    if next_suggestion_rid ~= nil then
+      cancel(next_suggestion_rid)
+    end
+    return
   end
 
-  if rid and suggestion_handles[rid] then
-    local progress = suggestion_handles[rid].progress
+  if rid and current_suggestion_handles[rid] then
+    local progress = current_suggestion_handles[rid].progress
 
     if copilot ~= nil then
       copilot:cancel_request(rid)
@@ -239,6 +249,16 @@ local function cancel(rid)
     util.finish_progress(progress)
 
     current_suggestion_rid = nil
+  end
+  if rid and next_suggestion_handles[rid] then
+    local progress = next_suggestion_handles[rid].progress
+
+    if copilot ~= nil then
+      copilot:cancel_request(rid)
+    end
+    util.finish_progress(progress)
+
+    next_suggestion_rid = nil
   end
 end
 
@@ -265,9 +285,10 @@ local function generate_next()
       end
       if #res.edits > 0 then
         if
-          current_suggestion_rid and suggestion_handles[current_suggestion_rid]
+          next_suggestion_rid
+          and next_suggestion_handles[next_suggestion_rid]
         then
-          suggestion_handles[current_suggestion_rid].items = res.edits
+          next_suggestion_handles[next_suggestion_rid].items = res.edits
           table.insert(
             extmark_ids,
             vim.api.nvim_buf_set_extmark(
@@ -309,17 +330,18 @@ local function generate_next()
         end
       else
         if
-          current_suggestion_rid and suggestion_handles[current_suggestion_rid]
+          next_suggestion_rid
+          and next_suggestion_handles[next_suggestion_rid]
         then
-          suggestion_handles[current_suggestion_rid] = nil
+          next_suggestion_handles[next_suggestion_rid] = nil
         end
       end
     end
   )
 
   if success and request_id ~= nil then
-    current_suggestion_rid = request_id
-    suggestion_handles[current_suggestion_rid] = {
+    next_suggestion_rid = request_id
+    next_suggestion_handles[next_suggestion_rid] = {
       progress = suggestion_progress_handle,
     }
   end
@@ -360,9 +382,10 @@ local function generate(before, after, cb)
           )
         ) -- remove start of line bc copilot sends the whole line + truncate end of line if in the middle
         if
-          current_suggestion_rid and suggestion_handles[current_suggestion_rid]
+          current_suggestion_rid
+          and current_suggestion_handles[current_suggestion_rid]
         then
-          suggestion_handles[current_suggestion_rid].items = res.items
+          current_suggestion_handles[current_suggestion_rid].items = res.items
           copilot:notify(
             "textDocument/didShowCompletion",
             { item = res.items[1] }
@@ -370,16 +393,17 @@ local function generate(before, after, cb)
         end
       else
         if
-          current_suggestion_rid and suggestion_handles[current_suggestion_rid]
+          current_suggestion_rid
+          and current_suggestion_handles[current_suggestion_rid]
         then
-          suggestion_handles[current_suggestion_rid] = nil
+          current_suggestion_handles[current_suggestion_rid] = nil
         end
       end
     end
   )
   if success and request_id ~= nil then
     current_suggestion_rid = request_id
-    suggestion_handles[current_suggestion_rid] = {
+    current_suggestion_handles[current_suggestion_rid] = {
       progress = suggestion_progress_handle,
     }
   end
@@ -391,8 +415,11 @@ local function accept(suggestion_left)
     return
   end
 
-  if current_suggestion_rid and suggestion_handles[current_suggestion_rid] then
-    local items = suggestion_handles[current_suggestion_rid].items
+  if
+    current_suggestion_rid
+    and current_suggestion_handles[current_suggestion_rid]
+  then
+    local items = current_suggestion_handles[current_suggestion_rid].items
     local accepted_length = #items[1].insertText - #suggestion_left
     if accepted_length == #items[1].insertText then
       copilot:exec_cmd(items[1].command, nil, function(err)
@@ -422,8 +449,11 @@ local function accept_next()
     return
   end
 
-  if current_suggestion_rid and suggestion_handles[current_suggestion_rid] then
-    local items = suggestion_handles[current_suggestion_rid].items
+  if
+    next_suggestion_rid
+    and next_suggestion_handles[next_suggestion_rid]
+  then
+    local items = next_suggestion_handles[next_suggestion_rid].items
     local start_line = items[1].range.start.line
     local end_line = items[1].range["end"].line
     local lines = util.get_lines(start_line + 1, end_line)
@@ -450,7 +480,7 @@ local function accept_next()
     clear()
 
     copilot:exec_cmd(items[1].command)
-    current_suggestion_rid = nil
+    next_suggestion_rid = nil
     generate_next()
     return true
   end
