@@ -21,8 +21,6 @@ local function sign_in(err, res, ctx)
     vim.notify(err, vim.log.levels.ERROR)
     return
   end
-  vim.notify("signIn")
-  -- vim.print(res)
 
   if res.status == "AlreadySignedIn" then
     vim.notify("Already logged in as " .. res.user, vim.log.levels.INFO)
