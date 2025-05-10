@@ -114,10 +114,6 @@ local function is_ready()
   return not initializing and ready
 end
 
-local function file_exists(file)
-  return vim.fn.filereadable(file) == 1
-end
-
 ---@type fun() | nil
 local init_callback = nil
 ---@param cb fun() | nil
@@ -163,58 +159,6 @@ local function init(cb)
       copilot = client
 
       copilot:request("signIn", vim.empty_dict())
-
-      vim.api.nvim_create_autocmd("BufReadPost", {
-        callback = function(ev)
-          if not file_exists(ev.file) then
-            return
-          end
-          copilot:notify("textDocument/didOpen", {
-            textDocument = {
-              uri = "file://" .. vim.fn.getcwd() .. "/" .. ev.file,
-              version = vim.lsp.util.buf_versions[ev.buf],
-            },
-          })
-        end,
-      })
-      vim.api.nvim_create_autocmd("BufDelete", {
-        callback = function(ev)
-          if not file_exists(ev.file) then
-            return
-          end
-          copilot:notify("textDocument/didClose", {
-            textDocument = {
-              uri = "file://" .. ev.file,
-            },
-          })
-        end,
-      })
-      vim.api.nvim_create_autocmd("WinEnter", {
-        callback = function(ev)
-          if not file_exists(ev.file) then
-            return
-          end
-          copilot:notify("textDocument/didFocus", {
-            textDocument = {
-              uri = "file://" .. ev.file,
-            },
-          })
-        end,
-      })
-      vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-        callback = function(ev)
-          if not file_exists(ev.file) then
-            return
-          end
-          copilot:notify("textDocument/didChange", {
-            textDocument = {
-              uri = "file://" .. ev.file,
-              version = vim.lsp.util.buf_versions[ev.buf],
-            },
-            contentChanges = { { text = util.join(util.get_lines(0), "\n") } },
-          })
-        end,
-      })
 
       ready = true
       initializing = false
