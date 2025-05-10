@@ -361,6 +361,9 @@ local function generate(before, after, cb)
   local col = cursor[2]
   local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   local position_params = vim.lsp.util.make_position_params(0, "utf-16")
+  if string.sub(position_params.textDocument.uri, 1, 7) ~= "file://" then
+    return
+  end
   position_params.context = { triggerKind = 2 }
   local success, request_id = copilot:request(
     "textDocument/inlineCompletion",
@@ -449,10 +452,7 @@ local function accept_next()
     return
   end
 
-  if
-    next_suggestion_rid
-    and next_suggestion_handles[next_suggestion_rid]
-  then
+  if next_suggestion_rid and next_suggestion_handles[next_suggestion_rid] then
     local items = next_suggestion_handles[next_suggestion_rid].items
     local start_line = items[1].range.start.line
     local end_line = items[1].range["end"].line
