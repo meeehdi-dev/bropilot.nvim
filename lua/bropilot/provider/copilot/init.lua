@@ -152,7 +152,7 @@ local function init(cb)
         if handlers[method] then
           return handlers[method]
         end
-        vim.print("handler not found: " .. method)
+        vim.notify("handler not found: " .. method, vim.log.levels.WARN)
       end,
     }),
     on_init = function(client)
