@@ -20,6 +20,8 @@ local copilot = nil
 local ns_id = vim.api.nvim_create_namespace("bropilot-next")
 local extmark_ids = {}
 
+local bro_group = vim.api.nvim_create_augroup("bropilot-copilot", {})
+
 local function sign_in(err, res, ctx)
   if err then
     vim.notify(err, vim.log.levels.ERROR)
@@ -159,6 +161,25 @@ local function init(cb)
       copilot = client
 
       copilot:request("signIn", vim.empty_dict())
+
+      vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+        group = bro_group,
+        callback = function(ev)
+          if
+            not vim.api.nvim_buf_is_valid(ev.buf)
+            or vim.api.nvim_buf_get_name(ev.buf) == ""
+            or string.sub(ev.file, 1, 6) == "oil://"
+          then
+            return
+          end
+
+          copilot:notify("textDocument/didFocus", {
+            textDocument = {
+              uri = "file://" .. ev.file,
+            },
+          })
+        end,
+      })
 
       ready = true
       initializing = false
