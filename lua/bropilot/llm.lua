@@ -52,11 +52,9 @@ local function cancel(pid)
   return provider.get().cancel(pid)
 end
 
----@param before string
----@param after string
 ---@param cb fun()
-local function generate(before, after, cb)
-  return provider.get().generate(before, after, cb)
+local function generate(cb)
+  return provider.get().generate(cb)
 end
 
 local function generate_next()

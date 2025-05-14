@@ -1,5 +1,4 @@
 local util = require("bropilot.util")
-local handlers = require("bropilot.provider.copilot.handlers")
 local _ = require("fidget.progress") -- progress handle type
 
 ---@type boolean
@@ -150,9 +149,6 @@ local function init(cb)
       __index = function(_, method)
         if method == "signIn" then
           return sign_in
-        end
-        if handlers[method] then
-          return handlers[method]
         end
         vim.notify("handler not found: " .. method, vim.log.levels.WARN)
       end,
@@ -312,10 +308,8 @@ local function generate_next()
   end
 end
 
----@param before string
----@param after string
 ---@param cb fun(done: boolean, response?: string)
-local function generate(before, after, cb)
+local function generate(cb)
   if copilot == nil then
     vim.notify("copilot lsp client not active", vim.log.levels.ERROR)
     return
