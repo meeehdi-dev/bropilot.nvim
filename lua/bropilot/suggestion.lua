@@ -11,7 +11,7 @@ local context_row = -1
 local context_col = -1
 ---@type uv.uv_timer_t | nil
 local debounce_timer = nil
-local debounce = 0 -- used to gradually increase timeout and avoid issues with curl
+local debounce = 0
 
 local function cancel()
   if debounce_timer then
@@ -50,10 +50,6 @@ end
 ---@param done boolean
 ---@param response string
 local function on_data(done, response)
-  if debounce > 0 then
-    debounce = 0 -- reset debounce timer
-  end
-
   if done then
     return
   end
@@ -108,21 +104,13 @@ local function get()
   end
 
   if opts.auto_suggest then
-    debounce = 1
-  else
-    if debounce <= 0 then
-      debounce = opts.debounce
-    end
+    debounce = opts.debounce
   end
 
   if
     timer:start(debounce, 0, function()
       debounce_timer = nil
       async.util.scheduler(function()
-        if debounce > 0 then
-          debounce = debounce * 2
-        end
-
         local row = vim.fn.line(".")
         local col = vim.fn.col(".")
 
@@ -139,16 +127,13 @@ local function get()
           table.insert(suffix_lines, 1, suffix_first_line)
         end
 
-        local prefix = util.join(prefix_lines)
-        local suffix = util.join(suffix_lines)
-
         local context_line = vim.api.nvim_get_current_line()
         context_line_before = string.sub(context_line, 0, col - 1)
         context_line_after = string.sub(context_line, col)
         context_row = row
         context_col = col
 
-        llm.generate(prefix, suffix, on_data)
+        llm.generate(on_data)
       end)
     end) == 0
   then
