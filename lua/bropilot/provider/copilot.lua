@@ -333,6 +333,15 @@ local function generate(cb)
         vim.notify(err.message, vim.log.levels.ERROR)
         return
       end
+
+      if
+        current_suggestion_rid
+        and current_suggestion_handles[current_suggestion_rid]
+        and current_suggestion_handles[current_suggestion_rid].progress
+      then
+        current_suggestion_handles[current_suggestion_rid].progress = nil
+      end
+
       if #res.items > 0 then
         local current_line = util.get_lines(row, row + 1)[1]
         cb(

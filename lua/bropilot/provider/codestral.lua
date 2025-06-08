@@ -82,15 +82,16 @@ local function generate(cb)
         vim.notify(err.message, vim.log.levels.ERROR)
         return
       end
+
+      if
+        current_suggestion_rid
+        and current_suggestion_handles[current_suggestion_rid]
+      then
+        current_suggestion_handles[current_suggestion_rid] = nil
+      end
+
       if #res.items > 0 then
         cb(false, res.items[1].insertText)
-      else
-        if
-          current_suggestion_rid
-          and current_suggestion_handles[current_suggestion_rid]
-        then
-          current_suggestion_handles[current_suggestion_rid] = nil
-        end
       end
     end
   )

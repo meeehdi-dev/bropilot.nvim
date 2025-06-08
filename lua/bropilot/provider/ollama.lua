@@ -66,6 +66,7 @@ local function cancel(rid)
     if llmls ~= nil then
       llmls:cancel_request(rid)
     end
+
     util.finish_progress(progress)
     current_suggestion_rid = nil
   end
@@ -85,15 +86,15 @@ local function generate(cb)
         return
       end
 
+      if
+        current_suggestion_rid
+        and current_suggestion_handles[current_suggestion_rid]
+      then
+        current_suggestion_handles[current_suggestion_rid] = nil
+      end
+
       if #res.items > 0 then
         cb(false, res.items[1].insertText)
-      else
-        if
-          current_suggestion_rid
-          and current_suggestion_handles[current_suggestion_rid]
-        then
-          current_suggestion_handles[current_suggestion_rid] = nil
-        end
       end
     end
   )
