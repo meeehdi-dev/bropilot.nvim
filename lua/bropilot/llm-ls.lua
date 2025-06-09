@@ -34,7 +34,7 @@ local function init(cb)
   local binary_zip = binary_name .. "-" .. version .. ".zip"
   local download_url = get_download_url(binary_name, version)
 
-  local binary_directory_path = vim.fn.stdpath("data") .. "/llm_ls/bin"
+  local binary_directory_path = vim.fn.stdpath("data") .. "/bropilot/bin"
   vim.fn.mkdir(binary_directory_path, "p")
 
   local ext = ""
