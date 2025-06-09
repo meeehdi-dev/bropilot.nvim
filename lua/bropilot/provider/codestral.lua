@@ -1,113 +1,110 @@
-local async = require("plenary.async")
-local curl = require("plenary.curl")
 local util = require("bropilot.util")
 local options = require("bropilot.options")
-local llm = require("bropilot.llm")
+local llm_ls = require("bropilot.llm-ls")
 
-local current_suggestion_pid = nil
-local suggestion_handles = {}
+---@type number | nil
+local current_suggestion_rid = nil
+---@type table<number, {progress: ProgressHandle}>
+local current_suggestion_handles = {}
 
+---@type boolean
+local ready = false
+---@type boolean
+local initializing = false
 local function is_ready()
-  return true
+  return not initializing and ready
 end
 
+---@type vim.lsp.Client
+local llmls = nil
+
+---@type fun() | nil
+local init_callback = nil
 local function init(cb)
-  cb()
-end
-
----@param pid number | nil
-local function cancel(pid)
-  if pid == nil then
-    if current_suggestion_pid ~= nil then
-      cancel(current_suggestion_pid)
-    end
-  end
-
-  if pid and suggestion_handles[pid] then
-    local job = suggestion_handles[pid].job
-    local progress = suggestion_handles[pid].progress
-
-    job:shutdown()
-    util.finish_progress(progress)
-
-    current_suggestion_pid = nil
-  end
-end
-
----@param before string
----@param after string
----@param cb fun(done: boolean, response?: string)
-local function generate(before, after, cb)
   local opts = options.get()
 
-  local truncated = llm.truncate(before, after, 32768) -- codestral context length
+  init_callback = cb
+  if ready or initializing then
+    return
+  end
+  initializing = true
 
-  local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-  local suggestion_job_pid = nil
-  local suggestion_job =
-    curl.post("https://codestral.mistral.ai/v1/fim/completions", {
-      headers = {
-        ["Content-Type"] = "application/json",
-        ["Accept"] = "application/json",
-        ["Authorization"] = "Bearer " .. opts.api_key,
+  local llm_ls_path = llm_ls.init()
+
+  vim.lsp.start({
+    name = "llm",
+    cmd = {
+      llm_ls_path,
+    },
+    init_options = {
+      provider = "codestral",
+      params = {
+        api_key = opts.api_key,
       },
-      body = vim.json.encode({
-        model = "codestral-latest",
-        prompt = truncated.prefix,
-        suffix = truncated.suffix,
-        stop = "\n\n",
-        max_tokens = "64",
-        temperature = "0",
-      }),
-      on_error = function(err)
-        if current_suggestion_pid ~= suggestion_job_pid then
-          cancel(suggestion_job_pid)
-          return
-        end
+    },
+    on_init = function(client)
+      llmls = client
+      ready = true
+      initializing = false
+      if init_callback then
+        init_callback()
+      end
+    end,
+  })
+end
 
-        if err.exit == nil then
-          -- avoid errors when cancelling a suggestion
-          return
-        end
+---@param rid number | nil
+local function cancel(rid)
+  if rid == nil then
+    if current_suggestion_rid ~= nil then
+      cancel(current_suggestion_rid)
+    end
+    return
+  end
 
-        async.util.scheduler(function()
-          vim.notify(err.message, vim.log.levels.ERROR)
-        end)
-      end,
-      stream = function(err, data)
-        if current_suggestion_pid ~= suggestion_job_pid then
-          cancel(suggestion_job_pid)
-          return
-        end
+  if rid and current_suggestion_handles[rid] then
+    local progress = current_suggestion_handles[rid].progress
 
-        async.util.scheduler(function()
-          if err then
-            vim.notify(err, vim.log.levels.ERROR)
-          end
+    if llmls ~= nil then
+      llmls:cancel_request(rid)
+    end
+    util.finish_progress(progress)
+    current_suggestion_rid = nil
+  end
+end
 
-          if data == nil or type(data) ~= "string" then
-            return
-          end
+---@param cb fun(done: boolean, response?: string)
+local function generate(cb)
+  local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
+  local position_params = vim.lsp.util.make_position_params(0, "utf-16")
+  local success, request_id = llmls:request(
+    "textDocument/inlineCompletion",
+    position_params,
+    function(err, res)
+      util.finish_progress(suggestion_progress_handle)
+      if err then
+        vim.notify(err.message, vim.log.levels.ERROR)
+        return
+      end
 
-          local success, body = pcall(vim.json.decode, data)
-          util.finish_progress(suggestion_progress_handle)
-          current_suggestion_pid = nil
-          cb(true)
+      if
+        current_suggestion_rid
+        and current_suggestion_handles[current_suggestion_rid]
+      then
+        current_suggestion_handles[current_suggestion_rid] = nil
+      end
 
-          if not success then
-            return
-          end
-
-          cb(false, body.choices[1].message.content)
-        end)
-      end,
-    })
-  suggestion_job_pid = suggestion_job.pid
-  suggestion_handles[suggestion_job_pid] = {
-    job = suggestion_job,
-    progress = suggestion_progress_handle,
-  }
-  current_suggestion_pid = suggestion_job_pid
+      if #res.items > 0 then
+        cb(false, res.items[1].insertText)
+      end
+    end
+  )
+  if success and request_id ~= nil then
+    current_suggestion_rid = request_id
+    current_suggestion_handles[current_suggestion_rid] = {
+      progress = suggestion_progress_handle,
+    }
+  end
 end
 
 return {

@@ -2,8 +2,19 @@ local suggestion = require("bropilot.suggestion")
 local keymap = require("bropilot.keymap")
 local options = require("bropilot.options")
 local util = require("bropilot.util")
+local llm = require("bropilot.llm")
 
 local bro_group = vim.api.nvim_create_augroup("bropilot", {})
+
+---@param buf number
+local function in_workspace(buf)
+  local buf_name = vim.api.nvim_buf_get_name(buf)
+  if buf_name ~= "" then
+    llm.init()
+    return true
+  end
+  return false
+end
 
 ---@param opts BroOptions
 local function setup(opts)
@@ -61,6 +72,19 @@ local function setup(opts)
       suggestion.cancel()
     end,
   })
+
+  if not in_workspace(0) then
+    local cmd
+    cmd = vim.api.nvim_create_autocmd({ "BufEnter" }, {
+      group = bro_group,
+      callback = function(ev)
+        if in_workspace(ev.buf) then
+          llm.init()
+          vim.api.nvim_del_autocmd(cmd)
+        end
+      end,
+    })
+  end
 end
 
 return {

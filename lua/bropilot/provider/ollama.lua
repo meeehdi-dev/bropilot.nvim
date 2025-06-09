@@ -1,292 +1,118 @@
-local async = require("plenary.async")
-local curl = require("plenary.curl")
 local util = require("bropilot.util")
 local options = require("bropilot.options")
-local llm = require("bropilot.llm")
+local llm_ls = require("bropilot.llm-ls")
+
+---@type number | nil
+local current_suggestion_rid = nil
+---@type table<number, {progress: ProgressHandle}>
+local current_suggestion_handles = {}
 
 ---@type boolean
 local ready = false
 ---@type boolean
 local initializing = false
----@type number | nil
-local current_suggestion_pid = nil
----@type table<number, {job: Job, progress: ProgressHandle}>
-local suggestion_handles = {}
-
 local function is_ready()
   return not initializing and ready
 end
 
----@param cb fun(found: boolean)
-local function find_model(cb)
-  local opts = options.get()
-
-  local find_progress_handle =
-    util.get_progress_handle("Finding model " .. opts.model)
-  curl.get(opts.ollama_url .. "/tags", {
-    on_error = function(err)
-      async.util.scheduler(function()
-        vim.notify(err.message, vim.log.levels.ERROR)
-        util.finish_progress(find_progress_handle)
-      end)
-    end,
-    callback = function(data)
-      async.util.scheduler(function()
-        util.finish_progress(find_progress_handle)
-        local body = vim.json.decode(data.body)
-        for _, v in ipairs(body.models) do
-          if v.name == opts.model then
-            cb(true)
-            return
-          end
-        end
-        cb(false)
-      end)
-    end,
-  })
-end
-
----@param cb fun() | nil
-local function pull_model(cb)
-  local opts = options.get()
-
-  local pull_progress_handle =
-    util.get_progress_handle("Pulling model " .. opts.model)
-  curl.post(opts.ollama_url .. "/pull", {
-    body = vim.json.encode({ name = opts.model }),
-    on_error = function(err)
-      async.util.scheduler(function()
-        vim.notify(err.message, vim.log.levels.ERROR)
-        util.finish_progress(pull_progress_handle)
-      end)
-    end,
-    stream = function(err, data)
-      async.util.scheduler(function()
-        if err then
-          vim.notify(err, vim.log.levels.ERROR)
-        end
-        local body = vim.json.decode(data)
-        if pull_progress_handle ~= nil then
-          if body.error then
-            vim.notify(body.error, vim.log.levels.ERROR)
-            util.finish_progress(pull_progress_handle)
-          elseif body.status == "success" then
-            util.finish_progress(pull_progress_handle)
-
-            if cb then
-              cb()
-            end
-          else
-            local report = { message = "", percentage = 100 }
-            if body.status then
-              report.message = body.status
-            end
-            if body.completed ~= nil and body.total ~= nil then
-              report.percentage = body.completed / body.total * 100
-            end
-            pull_progress_handle:report(report)
-          end
-        else
-          if body.error then
-            vim.notify(body.error, vim.log.levels.ERROR)
-          elseif body.status == "success" then
-            vim.notify(
-              "Pulled model " .. opts.model .. " successfully!",
-              vim.log.levels.INFO
-            )
-
-            if cb then
-              cb()
-            end
-          else
-            local report = { message = "", percentage = 100 }
-            if body.status then
-              report.message = body.status
-            end
-            if body.completed ~= nil and body.total ~= nil then
-              report.percentage = body.completed / body.total * 100
-            end
-            vim.notify(
-              "Pulling model: "
-                .. report.message
-                .. " ("
-                .. report.percentage
-                .. "%)",
-              vim.log.levels.INFO
-            )
-          end
-        end
-      end)
-    end,
-  })
-end
-
----@param cb fun()
-local function preload_model(cb)
-  local opts = options.get()
-
-  local preload_progress_handle =
-    util.get_progress_handle("Preloading " .. opts.model)
-  curl.post(opts.ollama_url .. "/generate", {
-    body = vim.json.encode({
-      model = opts.model,
-      options = opts.model_params,
-      keep_alive = "1h",
-    }),
-    on_error = function(err)
-      async.util.scheduler(function()
-        vim.notify(err.message, vim.log.levels.ERROR)
-        util.finish_progress(preload_progress_handle)
-      end)
-    end,
-    callback = function()
-      async.util.scheduler(function()
-        if preload_progress_handle ~= nil then
-          preload_progress_handle:finish()
-          preload_progress_handle = nil
-        else
-          vim.notify(
-            "Preloaded model " .. opts.model .. " successfully!",
-            vim.log.levels.INFO
-          )
-        end
-        ready = true
-        initializing = false
-        cb()
-      end)
-    end,
-  })
-end
+---@type vim.lsp.Client
+local llmls = nil
 
 ---@type fun() | nil
 local init_callback = nil
----@param cb fun() | nil
 local function init(cb)
+  local opts = options.get()
+
   init_callback = cb
   if ready or initializing then
     return
   end
   initializing = true
-  find_model(function(found)
-    if found then
-      preload_model(function()
+
+  llm_ls.init(function(path)
+    vim.lsp.start({
+      name = "llm",
+      cmd = {
+        path,
+      },
+      init_options = {
+        provider = "ollama",
+        params = {
+          url = opts.ollama_url,
+          model = opts.model,
+          model_params = opts.model_params,
+        },
+      },
+      on_init = function(client)
+        llmls = client
+        ready = true
+        initializing = false
         if init_callback then
           init_callback()
         end
-      end)
-    else
-      pull_model(function()
-        preload_model(function()
-          if init_callback then
-            init_callback()
-          end
-        end)
-      end)
-    end
+      end,
+    })
   end)
 end
 
----@param pid number | nil
-local function cancel(pid)
-  if not is_ready() then
-    init()
-  end
-
-  if pid == nil then
-    if current_suggestion_pid ~= nil then
-      cancel(current_suggestion_pid)
+---@param rid number | nil
+local function cancel(rid)
+  if rid == nil then
+    if current_suggestion_rid ~= nil then
+      cancel(current_suggestion_rid)
     end
     return
   end
 
-  if pid and suggestion_handles[pid] then
-    local job = suggestion_handles[pid].job
-    local progress = suggestion_handles[pid].progress
+  if rid and current_suggestion_handles[rid] then
+    local progress = current_suggestion_handles[rid].progress
 
-    job:shutdown()
+    if llmls ~= nil then
+      llmls:cancel_request(rid)
+    end
+
     util.finish_progress(progress)
-
-    current_suggestion_pid = nil
+    current_suggestion_rid = nil
   end
 end
 
----@param before string
----@param after string
 ---@param cb fun(done: boolean, response?: string)
-local function generate(before, after, cb)
-  local opts = options.get()
-  local num_ctx = opts.model_params.num_ctx
-
-  local truncated = llm.truncate(before, after, num_ctx or 8192)
-
+local function generate(cb)
   local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
-  local suggestion_job_pid = nil
-  local suggestion_job = curl.post(opts.ollama_url .. "/generate", {
-    body = vim.json.encode({
-      model = opts.model,
-      options = opts.model_params,
-      prompt = truncated.prefix,
-      suffix = truncated.suffix,
-    }),
-    on_error = function(err)
-      if current_suggestion_pid ~= suggestion_job_pid then
-        cancel(suggestion_job_pid)
-        return
-      end
-
-      if err.exit == nil then
-        -- avoid errors when cancelling a suggestion
-        return
-      end
-
-      async.util.scheduler(function()
+  local position_params = vim.lsp.util.make_position_params(0, "utf-16")
+  local success, request_id = llmls:request(
+    "textDocument/inlineCompletion",
+    position_params,
+    function(err, res)
+      util.finish_progress(suggestion_progress_handle)
+      if err then
         vim.notify(err.message, vim.log.levels.ERROR)
-      end)
-    end,
-    stream = function(err, data)
-      if current_suggestion_pid ~= suggestion_job_pid then
-        cancel(suggestion_job_pid)
         return
       end
 
-      async.util.scheduler(function()
-        if err then
-          vim.notify(err, vim.log.levels.ERROR)
-        end
+      if
+        current_suggestion_rid
+        and current_suggestion_handles[current_suggestion_rid]
+      then
+        current_suggestion_handles[current_suggestion_rid] = nil
+      end
 
-        if data == nil or type(data) ~= "string" then
-          return
-        end
-
-        local success, body = pcall(vim.json.decode, data)
-        if not success then
-          util.finish_progress(suggestion_progress_handle)
-          current_suggestion_pid = nil
-          cb(true)
-          return
-        end
-        if body.done then
-          util.finish_progress(suggestion_progress_handle)
-          current_suggestion_pid = nil
-          cb(true)
-          return
-        end
-
-        cb(false, body.response)
-      end)
-    end,
-  })
-  suggestion_job_pid = suggestion_job.pid
-  suggestion_handles[suggestion_job_pid] = {
-    job = suggestion_job,
-    progress = suggestion_progress_handle,
-  }
-  current_suggestion_pid = suggestion_job_pid
+      if #res.items > 0 then
+        cb(false, res.items[1].insertText)
+      end
+    end
+  )
+  if success and request_id ~= nil then
+    current_suggestion_rid = request_id
+    current_suggestion_handles[current_suggestion_rid] = {
+      progress = suggestion_progress_handle,
+    }
+  end
 end
 
 return {
   cancel = cancel,
   generate = generate,
-  init = init,
   is_ready = is_ready,
+  init = init,
 }
