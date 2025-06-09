@@ -1,5 +1,6 @@
 local util = require("bropilot.util")
 local options = require("bropilot.options")
+local llm_ls = require("bropilot.llm-ls")
 
 ---@type number | nil
 local current_suggestion_rid = nil
@@ -27,28 +28,31 @@ local function init(cb)
     return
   end
   initializing = true
-  vim.lsp.start({
-    name = "llm",
-    cmd = {
-      "/Users/mehdi/code/llm-language-server/llm-language-server",
-    },
-    init_options = {
-      provider = "ollama",
-      params = {
-        url = opts.ollama_url,
-        model = opts.model,
-        model_params = opts.model_params,
+
+  llm_ls.init(function(path)
+    vim.lsp.start({
+      name = "llm",
+      cmd = {
+        path,
       },
-    },
-    on_init = function(client)
-      llmls = client
-      ready = true
-      initializing = false
-      if init_callback then
-        init_callback()
-      end
-    end,
-  })
+      init_options = {
+        provider = "ollama",
+        params = {
+          url = opts.ollama_url,
+          model = opts.model,
+          model_params = opts.model_params,
+        },
+      },
+      on_init = function(client)
+        llmls = client
+        ready = true
+        initializing = false
+        if init_callback then
+          init_callback()
+        end
+      end,
+    })
+  end)
 end
 
 ---@param rid number | nil
