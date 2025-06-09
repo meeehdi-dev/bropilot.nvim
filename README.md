@@ -6,6 +6,8 @@
 
 Bropilot is a [GitHub Copilot](https://github.com/github/copilot.vim) alternative that can handle multiple providers, with the main advantage of being able to use local LLMs through [Ollama](https://ollama.com/)'s API.
 
+In the background, this plugin downloads and runs [llm-language-server](https://github.com/meeehdi-dev/llm-language-server), a language server used to keep track of the currently edited files states, and communicates directly with the LLM of your choice.
+
 Any FIM-compatible model works but here's a list of tested ones:
 - qwen2.5-coder
 - deepseek-coder
@@ -54,6 +56,7 @@ systemctl status ollama
 Here is the default configuration.
 
 - `provider` is a string defining the provider to use (`ollama`, `codestral` and `copilot` are supported)
+- `ls_version` is a string defining the version of [llm-language-server](https://github.com/meeehdi-dev/llm-language-server)
 - `api_key` is a string defining the API key to use for the `codestral` provider
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
 - `excluded_filetypes` is an array of filetypes ignored by the `auto_suggest` option (https://github.com/meeehdi-dev/bropilot.nvim/pull/1)
