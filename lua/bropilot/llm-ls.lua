@@ -52,8 +52,9 @@ local function init(cb)
     cb(binary_path)
   end
 
-  local download_progress =
-    util.get_progress_handle("Downloading llm-language-server...")
+  local download_progress = util.get_progress_handle(
+    "Downloading " .. binary_name .. "-" .. version .. ")..."
+  )
 
   curl.get(download_url, {
     output = binary_zip_path,
