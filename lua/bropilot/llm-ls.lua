@@ -50,6 +50,7 @@ local function init(cb)
 
   if vim.fn.executable(binary_path) == 1 then
     cb(binary_path)
+    return
   end
 
   local download_progress = util.get_progress_handle(
