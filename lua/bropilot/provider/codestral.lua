@@ -29,28 +29,30 @@ local function init(cb)
   end
   initializing = true
 
-  local llm_ls_path = llm_ls.init()
-
-  vim.lsp.start({
-    name = "llm",
-    cmd = {
-      llm_ls_path,
-    },
-    init_options = {
-      provider = "codestral",
-      params = {
-        api_key = opts.api_key,
+  llm_ls.init(function(path)
+    local progress = util.get_progress_handle("Starting llm-language-server")
+    vim.lsp.start({
+      name = "llm",
+      cmd = {
+        path,
       },
-    },
-    on_init = function(client)
-      llmls = client
-      ready = true
-      initializing = false
-      if init_callback then
-        init_callback()
-      end
-    end,
-  })
+      init_options = {
+        provider = "codestral",
+        params = {
+          api_key = opts.api_key,
+        },
+      },
+      on_init = function(client)
+        util.finish_progress(progress)
+        llmls = client
+        ready = true
+        initializing = false
+        if init_callback then
+          init_callback()
+        end
+      end,
+    })
+  end)
 end
 
 ---@param rid number | nil

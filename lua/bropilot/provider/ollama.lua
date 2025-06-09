@@ -30,6 +30,7 @@ local function init(cb)
   initializing = true
 
   llm_ls.init(function(path)
+    local progress = util.get_progress_handle("Starting llm-language-server")
     vim.lsp.start({
       name = "llm",
       cmd = {
@@ -44,6 +45,7 @@ local function init(cb)
         },
       },
       on_init = function(client)
+        util.finish_progress(progress)
         llmls = client
         ready = true
         initializing = false
