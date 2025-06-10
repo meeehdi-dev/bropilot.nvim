@@ -1,6 +1,6 @@
 ---@alias ModelParams { mirostat?: number, mirostat_eta?: number, mirostat_tau?: number, num_ctx?: number, repeat_last_n?: number, repeat_penalty?: number, temperature?: number, seed?: number, stop?: string[], tfs_z?: number, num_predict?: number, top_k?: number, top_p?: number, min_p?: number }
 ---@alias KeymapParams { accept_word: string, accept_line: string, accept_block: string, suggest: string, suggest_next?: string }
----@alias BroOptions { provider: "ollama" | "codestral", ls_version: string, api_key?: string, auto_suggest?: boolean, excluded_filetypes?: string[], model?: string, model_params?: ModelParams, debounce: number, keymap: KeymapParams, ollama_url: string }
+---@alias BroOptions { provider: "ollama" | "codestral", ls_version: string, ls_cmd?: string[], api_key?: string, auto_suggest?: boolean, excluded_filetypes?: string[], model?: string, model_params?: ModelParams, debounce: number, keymap: KeymapParams, ollama_url: string }
 
 ---@type BroOptions
 local default_opts = {

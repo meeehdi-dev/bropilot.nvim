@@ -29,13 +29,11 @@ local function init(cb)
   end
   initializing = true
 
-  llm_ls.init(function(path)
+  llm_ls.init(function(cmd)
     local progress = util.get_progress_handle("Starting llm-language-server")
     vim.lsp.start({
       name = "llm",
-      cmd = {
-        path,
-      },
+      cmd = cmd,
       init_options = {
         provider = "codestral",
         params = {
@@ -94,10 +92,10 @@ local function generate(cb)
         and current_suggestion_handles[current_suggestion_rid]
       then
         current_suggestion_handles[current_suggestion_rid] = nil
-      end
 
-      if #res.items > 0 then
-        cb(false, res.items[1].insertText)
+        if #res.items > 0 then
+          cb(false, res.items[1].insertText)
+        end
       end
     end
   )

@@ -21,13 +21,19 @@ local function get_download_url(name, version)
     .. ".zip"
 end
 
----@param cb fun(path: string)
+---@param cb fun(cmd: string[])
 local function init(cb)
+  local opts = options.get()
+
+  if opts.ls_cmd then
+    cb(opts.ls_cmd)
+    return
+  end
+
   local os_uname = vim.uv.os_uname()
   local os = string.lower(os_uname.sysname)
   local arch = string.lower(os_uname.machine)
 
-  local opts = options.get()
   local version = opts.ls_version
 
   local binary_name = get_binary_name(os, arch)
@@ -49,7 +55,7 @@ local function init(cb)
     .. ext
 
   if vim.fn.executable(binary_path) == 1 then
-    cb(binary_path)
+    cb({ binary_path })
     return
   end
 
@@ -76,7 +82,7 @@ local function init(cb)
         )
         -- vim.fn.system("rm " .. binary_zip_path)
 
-        cb(binary_path)
+        cb({ binary_path })
       end)
     end,
   })

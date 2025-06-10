@@ -29,13 +29,11 @@ local function init(cb)
   end
   initializing = true
 
-  llm_ls.init(function(path)
+  llm_ls.init(function(cmd)
     local progress = util.get_progress_handle("Starting llm-language-server")
     vim.lsp.start({
       name = "llm",
-      cmd = {
-        path,
-      },
+      cmd = cmd,
       init_options = {
         provider = "ollama",
         params = {
@@ -86,6 +84,7 @@ local function generate(cb)
     "textDocument/inlineCompletion",
     position_params,
     function(err, res)
+      vim.notify("request " .. (current_suggestion_rid or "nil") .. " finished")
       util.finish_progress(suggestion_progress_handle)
       if err then
         vim.notify(err.message, vim.log.levels.ERROR)
@@ -97,13 +96,14 @@ local function generate(cb)
         and current_suggestion_handles[current_suggestion_rid]
       then
         current_suggestion_handles[current_suggestion_rid] = nil
-      end
 
-      if #res.items > 0 then
-        cb(false, res.items[1].insertText)
+        if #res.items > 0 then
+          cb(false, res.items[1].insertText)
+        end
       end
     end
   )
+  vim.notify("request " .. request_id .. " started")
   if success and request_id ~= nil then
     current_suggestion_rid = request_id
     current_suggestion_handles[current_suggestion_rid] = {

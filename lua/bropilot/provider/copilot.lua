@@ -340,34 +340,34 @@ local function generate(cb)
         and current_suggestion_handles[current_suggestion_rid].progress
       then
         current_suggestion_handles[current_suggestion_rid].progress = nil
-      end
 
-      if #res.items > 0 then
-        local current_line = util.get_lines(row, row + 1)[1]
-        cb(
-          false,
-          string.sub(
-            res.items[1].insertText,
-            col + 1,
-            col + #res.items[1].insertText - #current_line
-          )
-        ) -- remove start of line bc copilot sends the whole line + truncate end of line if in the middle
-        if
-          current_suggestion_rid
-          and current_suggestion_handles[current_suggestion_rid]
-        then
-          current_suggestion_handles[current_suggestion_rid].items = res.items
-          copilot:notify(
-            "textDocument/didShowCompletion",
-            { item = res.items[1] }
-          )
-        end
-      else
-        if
-          current_suggestion_rid
-          and current_suggestion_handles[current_suggestion_rid]
-        then
-          current_suggestion_handles[current_suggestion_rid] = nil
+        if #res.items > 0 then
+          local current_line = util.get_lines(row, row + 1)[1]
+          cb(
+            false,
+            string.sub(
+              res.items[1].insertText,
+              col + 1,
+              col + #res.items[1].insertText - #current_line
+            )
+          ) -- remove start of line bc copilot sends the whole line + truncate end of line if in the middle
+          if
+            current_suggestion_rid
+            and current_suggestion_handles[current_suggestion_rid]
+          then
+            current_suggestion_handles[current_suggestion_rid].items = res.items
+            copilot:notify(
+              "textDocument/didShowCompletion",
+              { item = res.items[1] }
+            )
+          end
+        else
+          if
+            current_suggestion_rid
+            and current_suggestion_handles[current_suggestion_rid]
+          then
+            current_suggestion_handles[current_suggestion_rid] = nil
+          end
         end
       end
     end
