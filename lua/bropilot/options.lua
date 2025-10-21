@@ -14,7 +14,6 @@ local default_opts = {
     num_predict = -1,
     temperature = 0,
     top_p = 0.95,
-    max_tokens = 64,
     stop = { "<|fim_pad|>", "<|endoftext|>", "\n\n" },
   },
   debounce = 500,
