@@ -5,7 +5,7 @@
 ---@type BroOptions
 local default_opts = {
   provider = "ollama",
-  ls_version = "1.0.0",
+  ls_version = "1.1.0",
   auto_suggest = true,
   excluded_filetypes = {},
   model = "qwen2.5-coder:0.5b",
