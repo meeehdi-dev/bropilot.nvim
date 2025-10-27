@@ -1,4 +1,4 @@
-local progress = require("fidget.progress")
+local progress_installed, progress = pcall(require, "fidget.progress")
 
 ---@param row number
 ---@param col number
@@ -54,15 +54,20 @@ local function trim(text)
 end
 
 ---@param title string
----@return ProgressHandle
+---@return ProgressHandle | nil
 local function get_progress_handle(title)
-  return progress.handle.create({
-    title = title,
-    lsp_client = { name = "bropilot" },
-  })
+  if progress_installed then
+    return progress.handle.create({
+      title = title,
+      lsp_client = { name = "bropilot" },
+    })
+  else
+    vim.notify(title, vim.log.levels.INFO)
+    return nil
+  end
 end
 
----@param handle unknown
+---@param handle ProgressHandle | nil
 local function finish_progress(handle)
   if handle ~= nil then
     handle:finish()

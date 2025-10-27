@@ -97,7 +97,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     'meeehdi-dev/bropilot.nvim',
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "j-hui/fidget.nvim",
+      "j-hui/fidget.nvim", -- optional
     },
     config = true, -- setup with default options
   }
@@ -106,7 +106,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     'meeehdi-dev/bropilot.nvim',
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "j-hui/fidget.nvim",
+      "j-hui/fidget.nvim", -- optional
     },
     opts = {
       auto_suggest = true,
@@ -125,7 +125,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     'meeehdi-dev/bropilot.nvim',
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "j-hui/fidget.nvim",
+      "j-hui/fidget.nvim", -- optional
     },
     opts = {
       provider = "codestral",
@@ -142,7 +142,7 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
     'meeehdi-dev/bropilot.nvim',
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "j-hui/fidget.nvim",
+      "j-hui/fidget.nvim", -- optional
     },
     opts = {
       provider = "copilot",
