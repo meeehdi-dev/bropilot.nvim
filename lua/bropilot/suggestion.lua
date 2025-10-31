@@ -79,14 +79,15 @@ local function can_get()
   return true
 end
 
-local function get()
+---@param invoked boolean | nil
+local function get(invoked)
   if not can_get() then
     return
   end
 
   if not llm.is_ready() then
     llm.init(function()
-      get()
+      get(invoked)
     end)
     return
   end
@@ -133,7 +134,7 @@ local function get()
         context_row = row
         context_col = col
 
-        llm.generate(on_data)
+        llm.generate(on_data, invoked)
       end)
     end) == 0
   then

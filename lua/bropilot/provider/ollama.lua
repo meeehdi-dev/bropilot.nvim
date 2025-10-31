@@ -77,9 +77,15 @@ local function cancel(rid)
 end
 
 ---@param cb fun(done: boolean, response?: string)
-local function generate(cb)
+---@param invoked boolean
+local function generate(cb, invoked)
   local suggestion_progress_handle = util.get_progress_handle("Suggesting...")
   local position_params = vim.lsp.util.make_position_params(0, "utf-16")
+  if invoked then
+    position_params.context = { triggerKind = 1 }
+  else
+    position_params.context = { triggerKind = 2 }
+  end
   local success, request_id = llmls:request(
     "textDocument/inlineCompletion",
     position_params,
@@ -103,8 +109,8 @@ local function generate(cb)
       end
     end
   )
-  vim.notify("request " .. request_id .. " started")
   if success and request_id ~= nil then
+    vim.notify("request " .. request_id .. " started")
     current_suggestion_rid = request_id
     current_suggestion_handles[current_suggestion_rid] = {
       progress = suggestion_progress_handle,

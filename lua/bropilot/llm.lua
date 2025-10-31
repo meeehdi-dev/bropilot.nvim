@@ -6,8 +6,9 @@ local function cancel(pid)
 end
 
 ---@param cb fun()
-local function generate(cb)
-  return provider.get().generate(cb)
+---@param invoked boolean
+local function generate(cb, invoked)
+  return provider.get().generate(cb, invoked)
 end
 
 local function generate_next()

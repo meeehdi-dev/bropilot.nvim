@@ -309,7 +309,8 @@ local function generate_next()
 end
 
 ---@param cb fun(done: boolean, response?: string)
-local function generate(cb)
+---@param invoked boolean
+local function generate(cb, invoked)
   if copilot == nil then
     vim.notify("copilot lsp client not active", vim.log.levels.ERROR)
     return
@@ -323,7 +324,11 @@ local function generate(cb)
   if string.sub(position_params.textDocument.uri, 1, 7) ~= "file://" then
     return
   end
-  position_params.context = { triggerKind = 2 }
+  if invoked then
+    position_params.context = { triggerKind = 1 }
+  else
+    position_params.context = { triggerKind = 2 }
+  end
   local success, request_id = copilot:request(
     "textDocument/inlineCompletion",
     position_params,

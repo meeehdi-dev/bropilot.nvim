@@ -33,7 +33,7 @@ local function init()
   set(opts.keymap.accept_block, suggestion.accept_block, {"i", "n"})
   set(opts.keymap.suggest, function()
     suggestion.cancel()
-    suggestion.get()
+    suggestion.get(true)
     return true
   end)
   set(opts.keymap.suggest_next, function()
