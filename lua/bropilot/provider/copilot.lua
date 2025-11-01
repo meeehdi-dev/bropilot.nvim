@@ -1,5 +1,4 @@
 local util = require("bropilot.util")
-local _ = require("fidget.progress") -- progress handle type
 
 ---@type boolean
 local ready = false
