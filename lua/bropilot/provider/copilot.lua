@@ -103,6 +103,15 @@ local function sign_in(err, res, ctx)
   end
 end
 
+local function log_message(err, res, ctx)
+  if err then
+    vim.notify(err, vim.log.levels.ERROR)
+    return
+  end
+
+  -- vim.notify(res.message, res.type)
+end
+
 local function clear()
   for _, extmark_id in ipairs(extmark_ids) do
     vim.api.nvim_buf_del_extmark(0, ns_id, extmark_id)
@@ -129,7 +138,7 @@ local function init(cb)
     init_options = {
       editorInfo = {
         name = "neovim",
-        version = "0.11.0",
+        version = "0.11.4",
       },
       editorPluginInfo = {
         name = "bropilot.nvim",
@@ -148,6 +157,9 @@ local function init(cb)
       __index = function(_, method)
         if method == "signIn" then
           return sign_in
+        end
+        if method == "window/logMessage" then
+          return log_message
         end
         vim.notify("handler not found: " .. method, vim.log.levels.WARN)
       end,
