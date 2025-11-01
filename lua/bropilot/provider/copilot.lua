@@ -341,7 +341,6 @@ local function generate(cb, invoked)
       if
         current_suggestion_rid
         and current_suggestion_handles[current_suggestion_rid]
-        and current_suggestion_handles[current_suggestion_rid].progress
       then
         current_suggestion_handles[current_suggestion_rid].progress = nil
 
