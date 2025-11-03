@@ -18,6 +18,8 @@ end
 ---@type vim.lsp.Client
 local llmls = nil
 
+local bro_group = vim.api.nvim_create_augroup("bropilot-ollama", {})
+
 ---@type fun() | nil
 local init_callback = nil
 local function init(cb)
@@ -45,8 +47,17 @@ local function init(cb)
       on_init = function(client)
         util.finish_progress(progress)
         llmls = client
+
+        vim.api.nvim_create_autocmd({ "BufEnter" }, {
+          group = bro_group,
+          callback = function(ev)
+            llmls:on_attach(ev.buf)
+          end,
+        })
+
         ready = true
         initializing = false
+
         if init_callback then
           init_callback()
         end

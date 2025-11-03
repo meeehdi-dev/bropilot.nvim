@@ -132,6 +132,7 @@ local function init(cb)
     return
   end
   initializing = true
+  local progress = util.get_progress_handle("Starting copilot-language-server")
   vim.lsp.start({
     name = "copilot",
     cmd = { "copilot-language-server", "--stdio" },
@@ -165,21 +166,14 @@ local function init(cb)
       end,
     }),
     on_init = function(client)
+      util.finish_progress(progress)
       copilot = client
 
       copilot:request("signIn", vim.empty_dict())
 
-      vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+      vim.api.nvim_create_autocmd({ "BufEnter" }, {
         group = bro_group,
         callback = function(ev)
-          if
-            not vim.api.nvim_buf_is_valid(ev.buf)
-            or vim.api.nvim_buf_get_name(ev.buf) == ""
-            or string.sub(ev.file, 1, 6) == "oil://"
-          then
-            return
-          end
-
           copilot:notify("textDocument/didFocus", {
             textDocument = {
               uri = "file://" .. ev.file,

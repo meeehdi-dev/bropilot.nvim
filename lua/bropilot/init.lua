@@ -73,18 +73,7 @@ local function setup(opts)
     end,
   })
 
-  if not in_workspace(0) then
-    local cmd
-    cmd = vim.api.nvim_create_autocmd({ "BufEnter" }, {
-      group = bro_group,
-      callback = function(ev)
-        if in_workspace(ev.buf) then
-          llm.init()
-          vim.api.nvim_del_autocmd(cmd)
-        end
-      end,
-    })
-  end
+  llm.init()
 end
 
 return {
