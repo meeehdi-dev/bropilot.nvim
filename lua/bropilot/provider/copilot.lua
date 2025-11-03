@@ -171,7 +171,7 @@ local function init(cb)
 
       copilot:request("signIn", vim.empty_dict())
 
-      vim.api.nvim_create_autocmd({ "BufEnter" }, {
+      vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
         group = bro_group,
         callback = function(ev)
           copilot:notify("textDocument/didFocus", {
