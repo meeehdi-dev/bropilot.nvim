@@ -132,9 +132,7 @@ local function init(cb)
     return
   end
   initializing = true
-  local progress = util.get_progress_handle("Starting copilot-language-server")
-  vim.lsp.start({
-    name = "copilot",
+  vim.lsp.config("copilot", {
     cmd = { "copilot-language-server", "--stdio" },
     init_options = {
       editorInfo = {
@@ -166,7 +164,6 @@ local function init(cb)
       end,
     }),
     on_init = function(client)
-      util.finish_progress(progress)
       copilot = client
 
       copilot:request("signIn", vim.empty_dict())
@@ -190,6 +187,7 @@ local function init(cb)
       end
     end,
   })
+  vim.lsp.enable("copilot")
 end
 
 ---@param rid number | nil

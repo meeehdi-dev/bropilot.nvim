@@ -32,9 +32,7 @@ local function init(cb)
   initializing = true
 
   llm_ls.init(function(cmd)
-    local progress = util.get_progress_handle("Starting llm-language-server")
-    vim.lsp.start({
-      name = "llm",
+    vim.lsp.config("llm", {
       cmd = cmd,
       init_options = {
         provider = "codestral",
@@ -43,7 +41,6 @@ local function init(cb)
         },
       },
       on_init = function(client)
-        util.finish_progress(progress)
         llmls = client
         ready = true
         initializing = false
@@ -60,6 +57,7 @@ local function init(cb)
         end
       end,
     })
+    vim.lsp.enable("llm")
   end)
 end
 
