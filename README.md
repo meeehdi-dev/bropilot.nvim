@@ -19,6 +19,7 @@ Any FIM-compatible model works but here's a list of tested ones:
 
 Other than Ollama models, you can use online providers:
 - Codestral (via Mistral API)
+- Gemini
 
 ## Setup
 
@@ -36,9 +37,9 @@ systemctl status ollama
 
 Here is the default configuration.
 
-- `provider` is a string defining the provider to use (`ollama` and `codestral` are supported)
+- `provider` is a string defining the provider to use (`ollama`, `codestral` and `gemini` are supported)
 - `ls_version` is a string defining the version of [llm-language-server](https://github.com/meeehdi-dev/llm-language-server)
-- `api_key` is a string defining the API key to use for the `codestral` provider
+- `api_key` is a string defining the API key to use for the `codestral` and `gemini` providers
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
 - `excluded_filetypes` is an array of filetypes ignored by the `auto_suggest` option (https://github.com/meeehdi-dev/bropilot.nvim/pull/1)
 - `model` is the name of the model as listed with `ollama ls` (e.g. "codellama:7b-code" or "codegemma:2b-code")
