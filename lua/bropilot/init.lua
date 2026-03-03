@@ -6,16 +6,6 @@ local llm = require("bropilot.llm")
 
 local bro_group = vim.api.nvim_create_augroup("bropilot", {})
 
----@param buf number
-local function in_workspace(buf)
-  local buf_name = vim.api.nvim_buf_get_name(buf)
-  if buf_name ~= "" then
-    llm.init()
-    return true
-  end
-  return false
-end
-
 ---@param opts BroOptions
 local function setup(opts)
   local ok = options.set(opts)

@@ -142,17 +142,6 @@ local function get(invoked)
   end
 end
 
-local function get_next()
-  if not llm.is_ready() then
-    llm.init(function()
-      get_next()
-    end)
-    return
-  end
-
-  llm.generate_next()
-end
-
 ---@param inserting boolean
 ---@return boolean
 local function contains_context(inserting)
@@ -293,7 +282,7 @@ local function accept_block()
   end
 
   if current_suggestion == "" or current_suggestion == "\n" then
-    return llm.accept_next()
+    return false
   end
 
   add_undo_breakpoint()
@@ -358,6 +347,5 @@ return {
   cancel = cancel,
   contains_context = contains_context,
   get = get,
-  get_next = get_next,
   render = render,
 }

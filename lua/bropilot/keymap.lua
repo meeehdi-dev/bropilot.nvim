@@ -30,17 +30,12 @@ local function init()
 
   set(opts.keymap.accept_word, suggestion.accept_word)
   set(opts.keymap.accept_line, suggestion.accept_line)
-  set(opts.keymap.accept_block, suggestion.accept_block, {"i", "n"})
+  set(opts.keymap.accept_block, suggestion.accept_block, { "i", "n" })
   set(opts.keymap.suggest, function()
     suggestion.cancel()
     suggestion.get(true)
     return true
   end)
-  set(opts.keymap.suggest_next, function()
-    suggestion.cancel()
-    suggestion.get_next()
-    return true
-  end, { "i", "n" })
 end
 
 return {

@@ -17,27 +17,8 @@ Any FIM-compatible model works but here's a list of tested ones:
 
 > Thanks to [@hieutran21198](https://github.com/hieutran21198), here's a [list of most compatible models and their associated FIM tokens](https://github.com/hieutran21198/ai-agent-models) for easier configuration
 
-Other than Ollama models, you can use a couple other online providers:
+Other than Ollama models, you can use online providers:
 - Codestral (via Mistral API)
-- Copilot (via Github Copilot LSP)
-
-## Copilot
-
-### Signing in
-
-When copilot is initialized for the first time, it'll ask you to sign in by generating a unique code that you'll have to paste in your browser.
-
-### Next edit suggestions
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/f2faa927-b753-4df3-bfcf-7b7c78724a5a" />
-</p>
-
-Thanks to Github's copilot LSP and the work of [@Tris203](https://github.com/tris203) and [@Xuyuanp](https://github.com/Xuyuanp) on https://github.com/copilotlsp-nvim/copilot-lsp, if you use copilot as the provider, whenever you accept a suggestion, a request is sent to the LSP to ask for next edit suggestions.
-
-You can also set a keymap to force a request.
-
-⚠️ Please note that it is very experimental at the moment.
 
 ## Setup
 
@@ -55,7 +36,7 @@ systemctl status ollama
 
 Here is the default configuration.
 
-- `provider` is a string defining the provider to use (`ollama`, `codestral` and `copilot` are supported)
+- `provider` is a string defining the provider to use (`ollama` and `codestral` are supported)
 - `ls_version` is a string defining the version of [llm-language-server](https://github.com/meeehdi-dev/llm-language-server)
 - `api_key` is a string defining the API key to use for the `codestral` provider
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
@@ -132,24 +113,6 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       api_key = "<CODESTRAL_API_KEY>",
       auto_suggest = false,
       debounce = 1,
-    },
-    config = function (_, opts)
-        require("bropilot").setup(opts)
-    end,
-  }
-  -- or
-  {
-    'meeehdi-dev/bropilot.nvim',
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "j-hui/fidget.nvim", -- optional
-    },
-    opts = {
-      provider = "copilot",
-      debounce = 1000,
-      keymap = {
-        suggest_next = "<M-Down>",
-      },
     },
     config = function (_, opts)
         require("bropilot").setup(opts)

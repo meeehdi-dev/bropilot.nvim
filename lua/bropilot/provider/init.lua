@@ -1,6 +1,6 @@
 local options = require("bropilot.options")
 
----@alias Provider { is_ready: (fun(): boolean), init: (fun(cb: fun() | nil)), cancel: (fun(pid: number | nil)), generate: (fun(cb: fun(), invoked: boolean)), accept?: (fun(suggestion_left: string)), accept_next?: (fun(): boolean), generate_next?: (fun()) }
+---@alias Provider { is_ready: (fun(): boolean), init: (fun(cb: fun() | nil)), cancel: (fun(pid: number | nil)), generate: (fun(cb: fun(), invoked: boolean | nil)), accept?: (fun(suggestion_left: string)) }
 
 ---@return Provider
 local function get()

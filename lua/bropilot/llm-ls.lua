@@ -43,16 +43,10 @@ local function init(cb)
   local binary_directory_path = vim.fn.stdpath("data") .. "/bropilot/bin"
   vim.fn.mkdir(binary_directory_path, "p")
 
-  local ext = ""
-  if os == "windows" then
-    ext = ".exe"
-  end
-
   local binary_zip_path = binary_directory_path .. "/" .. binary_zip
   local binary_path = binary_directory_path
     .. "/llm-language-server-"
     .. version
-    .. ext
 
   if vim.fn.executable(binary_path) == 1 then
     cb({ binary_path })
@@ -65,22 +59,44 @@ local function init(cb)
 
   curl.get(download_url, {
     output = binary_zip_path,
-    callback = function()
+    callback = function(out)
       util.finish_progress(download_progress)
 
-      -- TODO: error handling
+      if out.exit ~= 0 then
+        vim.notify(
+          "Failed to download llm-language-server",
+          vim.log.levels.ERROR
+        )
+        return
+      end
 
       async.util.scheduler(function()
-        vim.fn.system(
+        local unzip_res = vim.fn.system(
           "unzip -o " .. binary_zip_path .. " -d " .. binary_directory_path
         )
-        vim.fn.system(
-          "mv "
-            .. binary_directory_path
-            .. "/llm-language-server "
-            .. binary_path
-        )
-        -- vim.fn.system("rm " .. binary_zip_path)
+
+        if vim.v.shell_error ~= 0 then
+          vim.notify(
+            "Failed to unzip llm-language-server: " .. unzip_res,
+            vim.log.levels.ERROR
+          )
+          return
+        end
+
+        local extracted_path = binary_directory_path .. "/llm-language-server"
+        local ok, err = vim.uv.fs_rename(extracted_path, binary_path)
+        if not ok then
+          vim.notify(
+            "Failed to rename llm-language-server binary: " .. (err or ""),
+            vim.log.levels.ERROR
+          )
+          return
+        end
+
+        vim.fn.delete(binary_zip_path)
+
+        -- Ensure it is executable
+        vim.fn.system("chmod +x " .. binary_path)
 
         cb({ binary_path })
       end)

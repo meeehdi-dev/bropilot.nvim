@@ -6,13 +6,9 @@ local function cancel(pid)
 end
 
 ---@param cb fun()
----@param invoked boolean
+---@param invoked boolean | nil
 local function generate(cb, invoked)
   return provider.get().generate(cb, invoked)
-end
-
-local function generate_next()
-  return provider.get().generate_next()
 end
 
 local function is_ready()
@@ -31,20 +27,10 @@ local function accept(suggestion_left)
   end
 end
 
----@return boolean
-local function accept_next()
-  if provider.get().accept_next then
-    return provider.get().accept_next()
-  end
-  return false
-end
-
 return {
   generate = generate,
-  generate_next = generate_next,
   cancel = cancel,
   is_ready = is_ready,
   init = init,
   accept = accept,
-  accept_next = accept_next,
 }
