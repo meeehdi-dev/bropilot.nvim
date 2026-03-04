@@ -58,7 +58,18 @@ function M.create(provider_name, get_init_options)
           vim.api.nvim_create_autocmd({ "BufEnter" }, {
             group = bro_group,
             callback = function(ev)
-              llmls:on_attach(ev.buf)
+              local buftype = vim.bo[ev.buf].buftype
+              if buftype ~= "" then
+                return
+              end
+
+              local filetype = vim.bo[ev.buf].filetype
+              local opts = require("bropilot.options").get()
+              if util.contains(opts.excluded_filetypes, filetype) then
+                return
+              end
+
+              vim.lsp.buf_attach_client(ev.buf, llmls.id)
             end,
           })
 
