@@ -20,35 +20,7 @@ end
 ---@param end_ number
 ---@param lines string[]
 local function set_lines(start, end_, lines)
-  vim.g.bropilot = true
-
-  if #lines == 1 then
-    -- Get current lines to compare length
-    local current_lines = vim.api.nvim_buf_get_lines(0, start, end_, true)
-
-    -- Fast path for single line replacements (especially word completions)
-    if #current_lines == 1 and start == end_ - 1 then
-      -- Instead of replacing the entire line with nvim_buf_set_lines,
-      -- replace only the text range to avoid a neovim 0.11 lsp sync bug
-      -- https://github.com/neovim/neovim/issues/33224
-      vim.api.nvim_buf_set_text(
-        0,
-        start,
-        0,
-        start,
-        #current_lines[1],
-        { lines[1] }
-      )
-    else
-      vim.api.nvim_buf_set_lines(0, start, end_, true, lines)
-    end
-  else
-    vim.api.nvim_buf_set_lines(0, start, end_, true, lines)
-  end
-
-  vim.defer_fn(function()
-    vim.g.bropilot = false
-  end, 10)
+  vim.api.nvim_buf_set_lines(0, start, end_, true, lines)
 end
 
 ---@param array string[]
