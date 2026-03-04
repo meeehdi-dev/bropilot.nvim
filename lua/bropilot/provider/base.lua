@@ -55,9 +55,14 @@ function M.create(provider_name, get_init_options)
         on_init = function(client)
           llmls = client
 
+          vim.api.nvim_clear_autocmds({ group = bro_group })
           vim.api.nvim_create_autocmd({ "BufEnter" }, {
             group = bro_group,
             callback = function(ev)
+              if not llmls then
+                return
+              end
+
               local buftype = vim.bo[ev.buf].buftype
               if buftype ~= "" then
                 return
@@ -82,6 +87,9 @@ function M.create(provider_name, get_init_options)
           init_callbacks = {}
         end,
         on_exit = function()
+          vim.schedule(function()
+            vim.api.nvim_clear_autocmds({ group = bro_group })
+          end)
           ready = false
           initializing = false
           llmls = nil
