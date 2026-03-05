@@ -51,6 +51,10 @@ function M.create(provider_name, get_init_options)
     llm_ls.init(function(cmd)
       vim.lsp.config("llm", {
         cmd = cmd,
+        root_dir = vim.fs.root(
+          0,
+          { ".git", "go.mod", "package.json", "requirements.txt", "Cargo.toml" }
+        ),
         init_options = get_init_options(),
         on_init = function(client)
           llmls = client
