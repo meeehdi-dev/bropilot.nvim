@@ -22,6 +22,7 @@ Other than Ollama models, you can use online providers:
 
 - Codestral (via Mistral API)
 - Mistral
+- DeepSeek
 - Gemini
 
 ## Setup
@@ -41,13 +42,13 @@ systemctl status ollama
 
 Here is the default configuration.
 
-- `provider` is a string defining the provider to use (`ollama`, `codestral`, `mistral` and `gemini` are supported)
+- `provider` is a string defining the provider to use (`ollama`, `codestral`, `mistral`, `gemini` and `deepseek` are supported)
 - `ls_version` is a string defining the version of [llm-language-server](https://github.com/meeehdi-dev/llm-language-server)
-- `api_key` is a string defining the API key to use for the `codestral`, `mistral` and `gemini` providers
+- `api_key` is a string defining the API key to use for the `codestral`, `mistral`, `gemini` and `deepseek` providers
 - `auto_suggest` is a boolean that enables automatic debounced suggestions
 - `excluded_filetypes` is an array of filetypes ignored by the `auto_suggest` option (https://github.com/meeehdi-dev/bropilot.nvim/pull/1)
 - `model` is the name of the model as listed with `ollama ls` (e.g. "codellama:7b-code" or "codegemma:2b-code")
-- `model_params` is an optional table defining model params as per [Ollama API params](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
+- `model_params` is an optional table of model parameters, supported by Ollama and DeepSeek providers
 - `debounce` is a number in milliseconds (this value gradually increases as long as the request does not respond on time, to avoid network overload issues)
 - `keymap` is a table to set the different keymap shortcuts _(not using lazy keys to allow fallback to default behavior when suggestions are not active)_
 
@@ -134,6 +135,29 @@ Install and configure using [lazy.nvim](https://github.com/folke/lazy.nvim)
       provider = "mistral",
       api_key = "<MISTRAL_API_KEY>",
       auto_suggest = false,
+    },
+    config = function (_, opts)
+        require("bropilot").setup(opts)
+    end,
+  }
+  -- or
+  {
+    'meeehdi-dev/bropilot.nvim',
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "j-hui/fidget.nvim", -- optional
+    },
+    opts = {
+      provider = "deepseek",
+      api_key = "<DEEPSEEK_API_KEY>",
+      auto_suggest = false,
+      model_params = {
+        temperature = 0.2,
+        top_p = 0.95,
+        max_tokens = 1024,
+        stop = { "<|fim_pad|>", "<|endoftext|>", "\n\n" },
+        logprobs = 0,
+      },
     },
     config = function (_, opts)
         require("bropilot").setup(opts)
